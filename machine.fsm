@@ -1,3 +1,1 @@
-(off) <push> forward;
-backward <sensor> forward;
-backward -push> off;
+(even) <push> odd;

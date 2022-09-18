@@ -1,6 +1,19 @@
-const parser = require("./weird.js");
+const parser = require("./fsm.js");
 const fs = require("fs");
 
+function SourceMap() {
+    this._sourceMap = {};
+
+    this.get = function([stateName, transitionName], fallback = undefined) {
+        return this._sourceMap[`${stateName},${transitionName}`] || fallback;
+    }
+
+    this.set = function([stateName, transitionName], v) {
+        this._sourceMap[`${stateName},${transitionName}`] = v;
+    }
+}
+
+const SOURCE_MAP = new SourceMap();
 
 // https://stackoverflow.com/a/34749873/2744990
 function isObject(item) {
@@ -34,17 +47,21 @@ function TransitionBuilder() {
     this.transitions = {};
 
     this.addTransition = function(state, transition, nextState) {
+        const outSrc = `${transition.name}: function() { this.state = "${nextState.name}"; }`;
+
         const { name } = state;
         const transitionObj = {
             [transition.name]: function () {
                 this.state = nextState.name;
-            }
+            },
         };
+
         if (!this.transitions[name]) {
             this.transitions[name] = transitionObj;
         } else {
-            this.transitions[name] = {...this.transitions[name], ...transitionObj};
+            Object.assign(this.transitions[name], transitionObj);
         }
+        SOURCE_MAP.set([name, transition.name], outSrc);
     }
 }
 
@@ -78,11 +95,40 @@ function unpackRule(ruleArr) {
     return {
         initial: initialState?.name || false,
         transitions: builder.transitions,
+        next: {}
     };
 }
 
-function build(src) {
-    const rules = parser.parse(snippet);
+function emit(machine, f) {
+    let src = `var fsm = {
+    state: '${machine.state}',
+    dispatch: function(actionName) {
+        const action = this.transitions[this.state][actionName];
+
+        if (action) {
+            action.call(this);
+        } else {
+            console.log('Invalid action: ' + action);
+        }
+    },
+    transitions: {
+`;
+    for (const [name, transitions] of Object.entries(machine.transitions)) {
+        const transitionSrc = Object.values(transitions).map(t => SOURCE_MAP.get([name, t.name])).filter(t => t);
+        src += `        ${name}: { ${transitionSrc.join(", ")} },\n`;
+    }
+    src += "}\n};"
+    src += "\nmodule.exports = fsm;\n";
+
+    fs.writeFile(f, src, (err) => {
+        if (err) {
+            throw BuildError(`Could not write to file: ${err}`);
+        }
+    });
+}
+
+function build(src, writeFile) {
+    const rules = parser.parse(src);
     const unpackedRules = rules.map(r => unpackRule(r));
     let initial;
 
@@ -97,7 +143,7 @@ function build(src) {
     const splitTransitions = unpackedRules.map(r => r.transitions);
     const transitions = splitTransitions.reduce((r,c) => mergeDeep(r, c), {});
 
-    return {
+    const machine = {
         state: initial,
         transitions,
         dispatch: function(actionName) {
@@ -106,29 +152,37 @@ function build(src) {
             if (action) {
                 action.call(this);
             } else {
-                console.log(`Invalid action: ${action}`);
+                throw BuildError(`Invalid action: ${action}`);
             }
         },
     }
+
+    if (writeFile) {
+        emit(machine, writeFile);
+    }
+
+    return machine;
 }
 
-const snippet = `
-(s1) -f> s2 <f> s3 -g> s4;
-s2 -g> s6;
-`;
+function main() {
+    const args = process.argv.slice(2);
 
-const machine = build(snippet);
+    if (args.length > 0) {
+        const inFile = args[0];
+        const outArg = args[1];
+        const outFile = outArg.endsWith(".js") ? outArg : `${outArg}.js`;
 
-// fs.writeFile("./fsm.js", serialize(machine), (err) => {
-//     if (err) {
-//         throw BuildError(`Could not write to file: ${err}`);
-//     }
-// });
+        let src;
+        try {
+            src = fs.readFileSync(inFile, "utf-8");
+        } catch(e) {
+            throw `An error occurred while reading source file: ${e}`;
+        }
 
-// console.log(machine.state);
-// machine.dispatch("f");
-// console.log(machine.state);
-// machine.dispatch("f");
-// console.log(machine.state);
-// machine.dispatch("f");
-// console.log(machine.state);
+        build(src, outFile);
+    }
+}
+
+main();
+
+module.exports = build;

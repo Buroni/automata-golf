@@ -44,5 +44,3 @@ transition
     | "<" IDENT "-" -> { direction: "l", name: $2 }
     | "-" IDENT ">" -> { direction: "r", name: $2 }
     ;
-
-
