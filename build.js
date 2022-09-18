@@ -95,7 +95,6 @@ function unpackRule(ruleArr) {
     return {
         initial: initialState?.name || false,
         transitions: builder.transitions,
-        next: {}
     };
 }
 
@@ -109,6 +108,12 @@ function emit(machine, f) {
             action.call(this);
         } else {
             console.log('Invalid action: ' + action);
+        }
+    },
+    consume: function(states, f) {
+        for (const s of states) {
+            const transitionName = f(s);
+            this.dispatch(transitionName);
         }
     },
     transitions: {
@@ -155,6 +160,12 @@ function build(src, writeFile) {
                 throw BuildError(`Invalid action: ${action}`);
             }
         },
+        consume: function(states, f) {
+            for (const s of states) {
+                const transitionName = f(s);
+                this.dispatch(transitionName);
+            }
+        }
     }
 
     if (writeFile) {
