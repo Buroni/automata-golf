@@ -11,18 +11,25 @@
 ">"                         return ">";
 "<"                         return "<";
 "-"                         return "-";
+"*"                         return "*";
 
 [A-Za-z_$][A-Za-z0-9_$]*    return "IDENT";
 
 /lex
 
+%{
+
+const utils = require("./utils");
+
+%}
+
 %%
 start
-    : rules { return $1; }
+    : rules { return utils.mergeRules($1); }
     ;
 rules
-    : rules rule -> [...$1, $2]
-    | rule -> [$1]
+    : rules rule -> [...$1, utils.unpackRuleStmt($2)]
+    | rule -> [utils.unpackRuleStmt($1)]
     ;
 rule
     : LINE_END -> []
@@ -38,6 +45,7 @@ rule_transition
 state
     : "(" IDENT ")" -> { type: "state", name: $2, initial: true }
     | IDENT -> { type: "state", name: $1 }
+    | "*" -> { type: "state", name: "*" }
     ;
 transition
     : "<" IDENT ">" -> { direction: "lr", name: $2 }
