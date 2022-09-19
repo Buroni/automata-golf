@@ -29,7 +29,7 @@ function mergeDeep({ state }, target, ...sources) {
         }
     }
 
-    return mergeDeep(target, ...sources);
+    return mergeDeep({}, target, ...sources);
 }
 
 
