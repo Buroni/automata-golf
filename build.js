@@ -5,11 +5,18 @@ function SourceMap() {
     this._sourceMap = {};
 
     this.get = function([stateName, transitionName], fallback = undefined) {
-        return this._sourceMap[`${stateName},${transitionName}`] || fallback;
+        const sourceMapEntry = this._sourceMap[stateName];
+        if (!sourceMapEntry || !sourceMapEntry[transitionName]) {
+            return fallback;
+        }
+        return sourceMapEntry[transitionName];
     }
 
     this.set = function([stateName, transitionName], v) {
-        this._sourceMap[`${stateName},${transitionName}`] = v;
+        if (!this._sourceMap[stateName]) {
+            this._sourceMap[stateName] = [];
+        }
+        this._sourceMap[stateName][transitionName] = v;
     }
 }
 
@@ -102,7 +109,7 @@ function emit(machine, f) {
     let src = `var fsm = {
     state: '${machine.state}',
     dispatch: function(actionName) {
-        const action = this.transitions[this.state][actionName];
+        var action = this.transitions[this.state][actionName];
 
         if (action) {
             action.call(this);
@@ -111,8 +118,8 @@ function emit(machine, f) {
         }
     },
     consume: function(states, f) {
-        for (const s of states) {
-            const transitionName = f(s);
+        for (var i = 0; i < states.length; i++) {
+            var transitionName = f(states[i]);
             this.dispatch(transitionName);
         }
     },
