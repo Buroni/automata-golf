@@ -1,4 +1,4 @@
-const parser = require("./fsm.js");
+const parser = require("./grammar.js");
 const fs = require("fs");
 
 function SourceMap() {
