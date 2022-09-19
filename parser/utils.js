@@ -1,29 +1,35 @@
 function ParseError(msg) {
     throw `FSM parse error: ${msg}`;
 }
+
 ParseError.prototype = Error.prototype;
 
 // https://stackoverflow.com/a/34749873/2744990
 function isObject(item) {
-  return (item && typeof item === 'object' && !Array.isArray(item));
+    return (item && typeof item === 'object' && !Array.isArray(item));
 }
 
-function mergeDeep(target, ...sources) {
-  if (!sources.length) return target;
-  const source = sources.shift();
+function mergeDeep({ state }, target, ...sources) {
+    if (!sources.length) return target;
+    const source = sources.shift();
 
-  if (isObject(target) && isObject(source)) {
-    for (const key in source) {
-      if (isObject(source[key])) {
-        if (!target[key]) Object.assign(target, { [key]: {} });
-        mergeDeep(target[key], source[key]);
-      } else {
-        Object.assign(target, { [key]: source[key] });
-      }
+    if (isObject(target) && isObject(source)) {
+        for (const key in source) {
+            if (isObject(source[key])) {
+                if (!target[key]) Object.assign(target, {[key]: {}});
+                mergeDeep({state: key}, target[key], source[key]);
+            } else {
+                if (target[key]) {
+                    throw new ParseError(
+                        `Multiple possible paths from state '${state}' via transition '${key}'`
+                    );
+                }
+                Object.assign(target, {[key]: source[key]});
+            }
+        }
     }
-  }
 
-  return mergeDeep(target, ...sources);
+    return mergeDeep(target, ...sources);
 }
 
 
@@ -31,10 +37,10 @@ function TransitionBuilder() {
     this.transitions = {};
     this.sourceMap = {};
 
-    this.addTransition = function(state, transition, nextState) {
+    this.addTransition = function (state, transition, nextState) {
         const outSrc = `${transition.name}: function() { this.state = "${nextState.name}"; }`;
 
-        const { name } = state;
+        const {name} = state;
         const transitionObj = {
             [transition.name]: function () {
                 this.state = nextState.name;
@@ -49,7 +55,9 @@ function TransitionBuilder() {
         }
 
         if (this.sourceMap[name][transition.name]) {
-            throw new BuildError(`Multiple possible transitions: transition '${transition.name}' from state '${name}'`);
+            throw new ParseError(
+                `Multiple possible paths from state '${name}' via transition '${transition.name}'`
+            );
         }
         this.sourceMap[name][transition.name] = outSrc;
     }
@@ -93,10 +101,8 @@ function unpackRuleStmt(ruleArr) {
 }
 
 function mergeRules(rules) {
-    const splitTransitions = rules.map(r => r.transitions);
-    const splitSourceMap = rules.map(r => r.sourceMap);
-    const transitions = splitTransitions.reduce((r,c) => mergeDeep(r, c), {});
-    const sourceMap = splitSourceMap.reduce((r,c) => mergeDeep(r, c), {});
+    const transitions = mergeDeep({}, ...rules.map(r => r.transitions));
+    const sourceMap = mergeDeep({}, ...rules.map(r => r.sourceMap));
 
     const initial = rules.find(r => r.initial)?.initial;
     if (!initial) {
@@ -112,4 +118,4 @@ function mergeRules(rules) {
     }
 }
 
-module.exports = { unpackRuleStmt, mergeRules };
+module.exports = {unpackRuleStmt, mergeRules};
