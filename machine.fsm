@@ -1,1 +1,2 @@
-backward -push> (off) <push> forward <collide> backward;
+(off) -push> forward <collide> backward;
+* -push> off;

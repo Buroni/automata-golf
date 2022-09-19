@@ -68,12 +68,18 @@ function TransitionBuilder() {
         } else {
             Object.assign(this.transitions[name], transitionObj);
         }
+
+        if (SOURCE_MAP.get([name, transition.name])) {
+            throw new BuildError(`Multiple possible transitions: transition '${transition.name}' from state '${name}'`);
+        }
         SOURCE_MAP.set([name, transition.name], outSrc);
     }
 }
 
 function unpackRule(ruleArr) {
     const builder = new TransitionBuilder();
+
+    console.log(ruleArr);
 
     ruleArr.forEach((item, i) => {
         if (item.type === "state" && i !== ruleArr.length - 1) {
@@ -114,7 +120,7 @@ function emit(machine, f) {
         if (action) {
             action.call(this);
         } else {
-            console.log('Invalid action: ' + action);
+            console.log('Invalid action: \\'' + action + '\\' from state \\'' + name + '\\'');
         }
     },
     consume: function(states, f = function(token) { return token; }) {
@@ -159,7 +165,7 @@ function build(src, { emitFile, strictActions } = {}) {
         initial = unpackedRules.find(r => r.initial).initial;
     } catch(e) {
         throw BuildError(
-            "No initial state set; wrap desired initial state in parenthesis, e.g. `(s1) -f> s2;`"
+            "No initial state set; wrap initial state in parenthesis, e.g. `(s1) -f> s2;`"
         );
     }
 
@@ -175,7 +181,7 @@ function build(src, { emitFile, strictActions } = {}) {
                 action.call(this);
             } catch(e) {
                 if (strictActions) {
-                    throw BuildError(`Invalid action: ${actionName} from state ${this.state}`);
+                    throw BuildError(`Invalid action: '${actionName}' from state '${this.state}'`);
                 }
             }
         },
@@ -210,8 +216,8 @@ function main() {
         } catch(e) {
             throw `An error occurred while reading source file: ${e}`;
         }
-        const fsm = new FSM();
-        fsm.build(src, outFile);
+        const builder = new Builder();
+        builder.build(src, outFile);
     }
 }
 
