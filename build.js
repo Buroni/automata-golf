@@ -132,14 +132,18 @@ function emit(machine, f) {
     src += "}\n};"
     src += "\nmodule.exports = fsm;\n";
 
-    fs.writeFile(f, src, (err) => {
-        if (err) {
-            throw BuildError(`Could not write to file: ${err}`);
-        }
-    });
+    if (f) {
+        fs.writeFile(f, src, (err) => {
+            if (err) {
+                throw BuildError(`Could not write to file: ${err}`);
+            }
+        });
+    } else {
+        return src;
+    }
 }
 
-function build(src, writeFile) {
+function build(src, { emitFile, strictActions } = { strictActions: true }) {
     const rules = parser.parse(src);
     const unpackedRules = rules.map(r => unpackRule(r));
     let initial;
@@ -159,12 +163,13 @@ function build(src, writeFile) {
         state: initial,
         transitions,
         dispatch: function(actionName) {
-            const action = this.transitions[this.state][actionName];
-
-            if (action) {
+            try {
+                const action = this.transitions[this.state][actionName];
                 action.call(this);
-            } else {
-                throw BuildError(`Invalid action: ${action}`);
+            } catch(e) {
+                if (strictActions) {
+                    throw BuildError(`Invalid action: ${actionName} from state ${this.state}`);
+                }
             }
         },
         consume: function(states, f) {
@@ -175,11 +180,13 @@ function build(src, writeFile) {
         }
     }
 
-    if (writeFile) {
-        emit(machine, writeFile);
+    if (emitFile && typeof emitFile === "string") {
+        emit(machine, emitFile);
+    } else if (emitFile) {
+        return emit(machine);
+    } else {
+        return machine;
     }
-
-    return machine;
 }
 
 function main() {
