@@ -1,4 +1,4 @@
-const parser = require("./grammar.js");
+const parser = require("./parser/grammar.js");
 const fs = require("fs");
 
 function BuildError(msg) {

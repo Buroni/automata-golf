@@ -1,3 +1,8 @@
+function ParseError(msg) {
+    throw `FSM parse error: ${msg}`;
+}
+ParseError.prototype = Error.prototype;
+
 // https://stackoverflow.com/a/34749873/2744990
 function isObject(item) {
   return (item && typeof item === 'object' && !Array.isArray(item));
@@ -94,6 +99,11 @@ function mergeRules(rules) {
     const sourceMap = splitSourceMap.reduce((r,c) => mergeDeep(r, c), {});
 
     const initial = rules.find(r => r.initial)?.initial;
+    if (!initial) {
+        throw new ParseError(
+            "Initial state not found; set initial state by wrapping in parenthesis, e.g. (s0) -f> s1 "
+        );
+    }
 
     return {
         initial,

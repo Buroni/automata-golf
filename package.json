@@ -4,7 +4,7 @@
   "description": "",
   "main": "fsm.js",
   "scripts": {
-    "parse": "jison grammar.jison",
+    "parse": "jison ./parser/grammar.jison -o ./parser/grammar.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
