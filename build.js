@@ -117,7 +117,7 @@ function emit(machine, f) {
             console.log('Invalid action: ' + action);
         }
     },
-    consume: function(states, f) {
+    consume: function(states, f = function(token) { return token; }) {
         for (var i = 0; i < states.length; i++) {
             var transitionName = f(states[i]);
             this.dispatch(transitionName);
@@ -143,7 +143,14 @@ function emit(machine, f) {
     }
 }
 
-function build(src, { emitFile, strictActions } = { strictActions: true }) {
+function build(src, { emitFile, strictActions } = {}) {
+    if (!emitFile) {
+        emitFile = this.emitFile;
+    }
+    if (!strictActions) {
+        strictActions = this.strictActions;
+    }
+
     const rules = parser.parse(src);
     const unpackedRules = rules.map(r => unpackRule(r));
     let initial;
@@ -172,7 +179,7 @@ function build(src, { emitFile, strictActions } = { strictActions: true }) {
                 }
             }
         },
-        consume: function(states, f) {
+        consume: function(states, f = token => token) {
             for (const s of states) {
                 const transitionName = f(s);
                 this.dispatch(transitionName);
@@ -203,11 +210,19 @@ function main() {
         } catch(e) {
             throw `An error occurred while reading source file: ${e}`;
         }
-
-        build(src, outFile);
+        const fsm = new FSM();
+        fsm.build(src, outFile);
     }
 }
 
 main();
 
-module.exports = build;
+function Builder({ emitFile, strictActions } = { strictActions: true }) {
+    this.emitFile = emitFile;
+    this.strictActions = strictActions;
+
+    this.build = build.bind(this);
+    this.inline = (strings, ...values) => this.build(String.raw({ raw: strings }, ...values));
+}
+
+module.exports = { Builder, build };
