@@ -40,8 +40,11 @@ function TransitionBuilder() {
             [transition.name]: function () {
                 this.state = nextState.name;
             },
-            [`$$src_${transition.name}`]: outSrc,
         };
+
+        if (!transition.name.startsWith("$$")) {
+           transitionObj[`$$src_${transition.name}`] = outSrc;
+        }
 
         if (!this.transitions[name]) {
             this.transitions[name] = transitionObj;
