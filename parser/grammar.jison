@@ -34,6 +34,7 @@ rules
 rule
     : LINE_END -> []
     | rule_transitions state LINE_END -> [...$1, $2]
+    | IDENT LINE_END -> [{ type: "state", name: $1}, { direction: "r", name: "$$SELF"}, { type: "state", name: $1}]
     ;
 rule_transitions
     : rule_transitions rule_transition -> [...$1, ...$2]

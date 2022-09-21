@@ -4,21 +4,6 @@ function ParseError(msg) {
 
 ParseError.prototype = Error.prototype;
 
-function filterObject(obj, key) {
-    for (const i in obj) {
-        if (!obj.hasOwnProperty(i)) {
-            continue;
-        }
-
-        if (typeof obj[i] == "object") {
-            filterObject(obj[i], key);
-        } else if (i === key) {
-            delete obj[key];
-        }
-    }
-    return obj;
-}
-
 function mergeTransitions(...sources) {
     const target = {};
 
@@ -111,19 +96,14 @@ function unpackRuleStmt(ruleArr) {
     };
 }
 
-function mergeRules(rules) {
-    // TODO - either build sourceMap from merged transitions object
-    // or attach sourcemap to transitions and pull out after merge
-    const transitions = mergeTransitions({}, ...rules.map(r => r.transitions));
-    const sourceMap = mergeTransitions({}, ...rules.map(r => r.sourceMap));
-
-    const specialState = transitions["*"];
+function applyKleene(transitions) {
+    const kleeneState = transitions["*"];
     delete transitions["*"];
-    if (specialState) {
+    if (kleeneState) {
         for (const state in transitions) {
-            for (const transitionName in specialState) {
+            for (const transitionName in kleeneState) {
                 if (!transitions[state][transitionName]) {
-                    transitions[state][transitionName] = specialState[transitionName]
+                    transitions[state][transitionName] = kleeneState[transitionName]
                 } else {
                     throw new ParseError(
                     `Multiple possible paths from state '${state}' via transition '${transitionName}'`
@@ -131,6 +111,19 @@ function mergeRules(rules) {
                 }
             }
         }
+    }
+}
+
+function mergeRules(rules) {
+    // TODO - either build sourceMap from merged transitions object
+    // or attach sourcemap to transitions and pull out after merge
+    const transitions = mergeTransitions({}, ...rules.map(r => r.transitions));
+    const sourceMap = mergeTransitions({}, ...rules.map(r => r.sourceMap));
+
+    applyKleene(transitions);
+    
+    for (const state in transitions) {
+        delete transitions[state]["$$SELF"];
     }
 
     const initial = rules.find(r => r.initial)?.initial;
