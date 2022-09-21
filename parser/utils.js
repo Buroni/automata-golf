@@ -117,6 +117,22 @@ function mergeRules(rules) {
     const transitions = mergeTransitions({}, ...rules.map(r => r.transitions));
     const sourceMap = mergeTransitions({}, ...rules.map(r => r.sourceMap));
 
+    const specialState = transitions["*"];
+    delete transitions["*"];
+    if (specialState) {
+        for (const state in transitions) {
+            for (const transitionName in specialState) {
+                if (!transitions[state][transitionName]) {
+                    transitions[state][transitionName] = specialState[transitionName]
+                } else {
+                    throw new ParseError(
+                    `Multiple possible paths from state '${state}' via transition '${transitionName}'`
+                     );
+                }
+            }
+        }
+    }
+
     const initial = rules.find(r => r.initial)?.initial;
     if (!initial) {
         throw new ParseError(
