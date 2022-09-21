@@ -1,12 +1,15 @@
 const parser = require("./parser/grammar.js");
 const fs = require("fs");
 
-function filterMetaProperties(obj) {
-    for (const key in obj) {
-        if (key.startsWith("$$")) {
-            delete obj[key];
+function filterMetaProperties(machine) {
+    for (const state in machine.transitions) {
+        for (const transitionName in machine.transitions[state]) {
+            if (transitionName.startsWith("$$")) {
+                delete machine.transitions[state][transitionName];
+            }
         }
     }
+    return machine.transitions;
 }
 
 function BuildError(msg) {
@@ -60,6 +63,7 @@ function emit(machine, f) {
 function build(src, { emitFile, strictActions } = {}) {
     const unpackedRules = parser.parse(src);
     const { initial, transitions } = unpackedRules;
+    const ret = {};
 
     const machine = {
         state: initial,
@@ -83,11 +87,12 @@ function build(src, { emitFile, strictActions } = {}) {
     };
 
     if (emitFile && typeof emitFile === "string") {
-        return { machine, src: emit(machine, emitFile) };
+        ret.src = emit(machine, emitFile);
     } else if (emitFile) {
-        return { machine, src: emit(machine) };
+        ret.src = emit(machine);
     }
-    return  { machine };
+    ret.machine = filterMetaProperties(machine);
+    return ret;
 }
 
 function main() {
