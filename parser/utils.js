@@ -40,11 +40,8 @@ function TransitionBuilder() {
             [transition.name]: function () {
                 this.state = nextState.name;
             },
+            [`$$src_${transition.name}`] : outSrc,
         };
-
-        if (!transition.name.startsWith("$$")) {
-           transitionObj[`$$src_${transition.name}`] = outSrc;
-        }
 
         if (!this.transitions[name]) {
             this.transitions[name] = transitionObj;
@@ -116,12 +113,6 @@ function mergeRules(rules) {
     const transitions = mergeTransitions({}, ...rules.map(r => r.transitions));
 
     applyKleene(transitions);
-    
-    for (const state in transitions) {
-        delete transitions[state]["$$SELF"];
-    }
-
-
 
     const initial = rules.find(r => r.initial)?.initial;
     if (!initial) {
