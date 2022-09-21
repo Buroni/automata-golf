@@ -101,6 +101,8 @@ function unpackRuleStmt(ruleArr) {
 }
 
 function mergeRules(rules) {
+    // TODO - either build sourceMap from merged transitions object
+    // or attach sourcemap to transitions and pull out after merge
     const transitions = mergeDeep({}, ...rules.map(r => r.transitions));
     const sourceMap = mergeDeep({}, ...rules.map(r => r.sourceMap));
 
