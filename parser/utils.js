@@ -4,34 +4,45 @@ function ParseError(msg) {
 
 ParseError.prototype = Error.prototype;
 
-// https://stackoverflow.com/a/34749873/2744990
-function isObject(item) {
-    return (item && typeof item === 'object' && !Array.isArray(item));
+function filterObject(obj, key) {
+    for (const i in obj) {
+        if (!obj.hasOwnProperty(i)) {
+            continue;
+        }
+
+        if (typeof obj[i] == "object") {
+            filterObject(obj[i], key);
+        } else if (i === key) {
+            delete obj[key];
+        }
+    }
+    return obj;
 }
 
-function mergeDeep({ state }, target, ...sources) {
-    if (!sources.length) return target;
-    const source = sources.shift();
+function mergeTransitions(...sources) {
+    const target = {};
 
-    if (isObject(target) && isObject(source)) {
-        for (const key in source) {
-            if (isObject(source[key])) {
-                if (!target[key]) Object.assign(target, {[key]: {}});
-                mergeDeep({state: key}, target[key], source[key]);
-            } else {
-                if (target[key]) {
+    for (const source of sources) {
+        for (const state in source) {
+
+            if (!target[state]) {
+                target[state] = {};
+            }
+
+            for (const transition in source[state]) {
+                if (!target[state][transition]) {
+                    target[state][transition] = source[state][transition];
+                } else {
                     throw new ParseError(
-                        `Multiple possible paths from state '${state}' via transition '${key}'`
+                        `Multiple possible paths from state '${state}' via transition '${transition}'`
                     );
                 }
-                Object.assign(target, {[key]: source[key]});
             }
         }
     }
 
-    return mergeDeep({}, target, ...sources);
+    return target;
 }
-
 
 function TransitionBuilder() {
     this.transitions = {};
@@ -103,8 +114,8 @@ function unpackRuleStmt(ruleArr) {
 function mergeRules(rules) {
     // TODO - either build sourceMap from merged transitions object
     // or attach sourcemap to transitions and pull out after merge
-    const transitions = mergeDeep({}, ...rules.map(r => r.transitions));
-    const sourceMap = mergeDeep({}, ...rules.map(r => r.sourceMap));
+    const transitions = mergeTransitions({}, ...rules.map(r => r.transitions));
+    const sourceMap = mergeTransitions({}, ...rules.map(r => r.sourceMap));
 
     const initial = rules.find(r => r.initial)?.initial;
     if (!initial) {

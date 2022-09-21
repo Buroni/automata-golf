@@ -66,14 +66,14 @@ function build(src, { emitFile, strictActions } = {}) {
                 this.dispatch(transitionName);
             }
         }
-    }
+    };
 
     if (emitFile && typeof emitFile === "string") {
         return { machine, src: emit(machine, sourceMap, emitFile) };
     } else if (emitFile) {
         return { machine, src: emit(machine, sourceMap) };
     }
-    return machine;
+    return  { machine };
 }
 
 function main() {
