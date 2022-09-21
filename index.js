@@ -1,12 +1,20 @@
 const parser = require("./parser/grammar.js");
 const fs = require("fs");
 
+function filterMetaProperties(obj) {
+    for (const key in obj) {
+        if (key.startsWith("$$")) {
+            delete obj[key];
+        }
+    }
+}
+
 function BuildError(msg) {
     throw `FSM build error: ${msg}`;
 }
 BuildError.prototype = Error.prototype;
 
-function emit(machine, sourceMap, f) {
+function emit(machine, f) {
     let src = `var fsm = {
     state: '${machine.state}',
     dispatch: function(actionName) {
@@ -27,9 +35,15 @@ function emit(machine, sourceMap, f) {
     transitions: {
 `;
     for (const [name, transitions] of Object.entries(machine.transitions)) {
-        const transitionSrc = Object.values(transitions).map(t => sourceMap[name][t.name]).filter(t => t);
+        const transitionSrc = [];
+        for (const key in transitions) {
+            if (key.startsWith("$$src")) {
+                transitionSrc.push(transitions[key])
+            }
+        }
         src += `        ${name}: { ${transitionSrc.join(", ")} },\n`;
     }
+
     src += "}\n};"
     src += "\nmodule.exports = fsm;\n";
 
@@ -45,7 +59,7 @@ function emit(machine, sourceMap, f) {
 
 function build(src, { emitFile, strictActions } = {}) {
     const unpackedRules = parser.parse(src);
-    const { initial, transitions, sourceMap } = unpackedRules;
+    const { initial, transitions } = unpackedRules;
 
     const machine = {
         state: initial,
@@ -69,9 +83,9 @@ function build(src, { emitFile, strictActions } = {}) {
     };
 
     if (emitFile && typeof emitFile === "string") {
-        return { machine, src: emit(machine, sourceMap, emitFile) };
+        return { machine, src: emit(machine, emitFile) };
     } else if (emitFile) {
-        return { machine, src: emit(machine, sourceMap) };
+        return { machine, src: emit(machine) };
     }
     return  { machine };
 }

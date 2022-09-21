@@ -31,7 +31,6 @@ function mergeTransitions(...sources) {
 
 function TransitionBuilder() {
     this.transitions = {};
-    this.sourceMap = {};
 
     this.addTransition = function (state, transition, nextState) {
         const outSrc = `${transition.name}: function() { this.state = "${nextState.name}"; }`;
@@ -41,21 +40,18 @@ function TransitionBuilder() {
             [transition.name]: function () {
                 this.state = nextState.name;
             },
+            [`$$src_${transition.name}`]: outSrc,
         };
 
         if (!this.transitions[name]) {
             this.transitions[name] = transitionObj;
-            this.sourceMap[name] = {};
-        } else {
-            Object.assign(this.transitions[name], transitionObj);
-        }
-
-        if (this.sourceMap[name][transition.name]) {
+        } else if (this.transitions[name][transition.name]) {
             throw new ParseError(
                 `Multiple possible paths from state '${name}' via transition '${transition.name}'`
             );
+        } else {
+            Object.assign(this.transitions[name], transitionObj);
         }
-        this.sourceMap[name][transition.name] = outSrc;
     }
 }
 
@@ -92,7 +88,6 @@ function unpackRuleStmt(ruleArr) {
     return {
         initial: initialState?.name || false,
         transitions: builder.transitions,
-        sourceMap: builder.sourceMap,
     };
 }
 
@@ -115,16 +110,15 @@ function applyKleene(transitions) {
 }
 
 function mergeRules(rules) {
-    // TODO - either build sourceMap from merged transitions object
-    // or attach sourcemap to transitions and pull out after merge
     const transitions = mergeTransitions({}, ...rules.map(r => r.transitions));
-    const sourceMap = mergeTransitions({}, ...rules.map(r => r.sourceMap));
 
     applyKleene(transitions);
     
     for (const state in transitions) {
         delete transitions[state]["$$SELF"];
     }
+
+
 
     const initial = rules.find(r => r.initial)?.initial;
     if (!initial) {
@@ -136,7 +130,6 @@ function mergeRules(rules) {
     return {
         initial,
         transitions,
-        sourceMap,
     }
 }
 

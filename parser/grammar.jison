@@ -2,7 +2,7 @@
 
 %%
 
-\s*\@[^\n\r]*               /* skip line comments */
+\s*\#[^\n\r]*               /* skip line comments */
 \s+                         /* skip whitespace */
 
 ";"                         return "LINE_END";
