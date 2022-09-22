@@ -68,6 +68,20 @@ s0 -[a:_]> success;
 
 ## Examples
 
+### Self-driving robot
+
+This self-driving robot can only go backwards and forwards, and switches direction when it detects a collision.
+
+```
+const machine = inline`
+(off) <push> forward <collide> backward -push> off;
+`;
+
+machine.consume(["push", "collide", "collide"]).state; // forward
+```
+
+### a<sup>n</sup>b<sup>n</sup>
+
 The following example matches the language a<sup>n</sup>b<sup>n</sup>
 
 ```js
