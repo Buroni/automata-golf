@@ -1,14 +1,4 @@
-const { pureTransitionSrc, impureTransitionSrc } = require("../generator/emit.js");
-
-function ParseError(msg) {
-    throw `FSM parse error: ${msg}`;
-}
-
-ParseError.prototype = Error.prototype;
-
-function isMetaProperty(property) {
-    return property.startsWith("@@");
-}
+const { ParseError, isMetaProperty } = require("../utils.js");
 
 function mergeTransitions(...sources) {
     const target = {};
@@ -38,28 +28,31 @@ function mergeTransitions(...sources) {
 function TransitionBuilder() {
     this.transitions = {};
 
-    this.addTransition = function (state, transition, nextState) {
-        let outSrc;
-        let transitionFun;
-
+    this.getTransitionFunction = function(transition, nextState) {
         if (transition.stackVal) {
-            transitionFun = function () {
+            return function () {
                 this.state = nextState.name;
                 this.stack.push(...transition.stackVal.split(","));
             };
-            outSrc = impureTransitionSrc(transition.name, nextState.name, transition.stackVal);
         } else {
-            transitionFun = function () {
+            return function () {
                 this.state = nextState.name;
             };
-            outSrc = pureTransitionSrc(transition.name, nextState.name);
         }
+    }
 
+    this.addTransition = function (state, transition, nextState) {
+        const fn = this.getTransitionFunction(transition, nextState);
+        
         const {name} = state;
         const transitionObj = {
-            [transition.name]: transitionFun,
-            [`@@src_${transition.name}`] : outSrc,
+            [transition.name]: fn,
+            [`@@nextState_${transition.name}`]: nextState.name,
         };
+
+        if (transition.stackVal) {
+            transitionObj[`@@stackVal_${transition.name}`] = transition.stackVal;
+        }
 
         if (!this.transitions[name]) {
             this.transitions[name] = transitionObj;
