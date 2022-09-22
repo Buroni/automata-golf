@@ -17,17 +17,31 @@ function BuildError(msg) {
 }
 BuildError.prototype = Error.prototype;
 
-function emit(machine, f) {
+function emit(machine, strictActions, f) {
     let src = `var fsm = {
+    strictActions: ${strictActions},
     stack: [],
     state: '${machine.state}',
     dispatch: function(actionName) {
-        var action = this.transitions[this.state][actionName];
+        var stackValue = this.stack.pop();
+        var transitionActionName;
+        for (var key in this.transitions[this.state]) {
+            if (key.startsWith(actionName + ',')) {
+                var [, stackTransition] = key.split(",");
+                if (!stackTransition || stackTransition === stackValue) {
+                    transitionActionName = key;
+                    break;
+                }
+            }
+        }
 
-        if (action) {
+        try {
+            var action = this.transitions[this.state][transitionActionName];
             action.call(this);
-        } else {
-            console.log('Invalid action: \\'' + action + '\\' from state \\'' + name + '\\'');
+        } catch(e) {
+            if (this.strictActions) {
+                throw new Error('Invalid action: \\'' + actionName + '\\' from state \\'' + this.state + '\\'');
+            }
         }
     },
     consume: function(states, f = function(token) { return token; }) {
@@ -85,10 +99,6 @@ function build(src, { emitFile, strictActions } = { strictActions: true }) {
 
             try {
                 const action = this.transitions[this.state][transitionActionName];
-                // if (!action && strictActions) {
-                //     throw BuildError(`Invalid action: '${actionName}' from state '${this.state}'`);
-                // }
-                // console.log(action)
                 action.call(this);
             } catch(e) {
                 if (strictActions) {
@@ -105,9 +115,9 @@ function build(src, { emitFile, strictActions } = { strictActions: true }) {
     };
 
     if (emitFile && typeof emitFile === "string") {
-        ret.src = emit(machine, emitFile);
+        ret.src = emit(machine, strictActions, emitFile);
     } else if (emitFile) {
-        ret.src = emit(machine);
+        ret.src = emit(machine, strictActions);
     }
     ret.machine = filterMetaProperties(machine);
     return ret;

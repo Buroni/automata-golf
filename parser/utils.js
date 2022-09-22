@@ -43,14 +43,21 @@ function TransitionBuilder() {
         if (transition.stackVal) {
             transitionFun = function () {
                 this.state = nextState.name;
-                this.stack.push(...transition.stackVal.split(":"));
+                this.stack.push(...transition.stackVal.split(","));
             };
-            outSrc = `'${transition.name}': function() { this.state = '${nextState.name}'; this.stack.push('${transition.stackVal}') }`;
+            outSrc = `'${transition.name}': 
+                function() { 
+                    this.state = '${nextState.name}'; 
+                    this.stack.push(${transition.stackVal.split(",").map(el => `'${el}'`).join(",")});
+                 }`;
         } else {
             transitionFun = function () {
                 this.state = nextState.name;
             };
-            outSrc = `'${transition.name}': function() { this.state = '${nextState.name}'; }`;
+            outSrc = `'${transition.name}': 
+                function() { 
+                    this.state = '${nextState.name}'; 
+                }`;
         }
 
         const {name} = state;
