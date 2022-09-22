@@ -89,7 +89,14 @@ machine.consume("aabb").stackIsInitial({ reset: true }); // true
 
 See below for the automaton for this example. 
 
-<img src="https://i.ibb.co/4W51LWN/Screenshot-2022-09-22-at-23-05-26.png"/>
+<img src="https://i.ibb.co/ChgHrtB/Screenshot-2022-09-22-at-23-24-32.png"/>
+
+> Note: Any transition used in the machine definition is valid from any state.
+If a specific transition exists but isn't defined at a given state,
+the stack is simply popped. 
+> 
+>This is why we don't need to explicitly define 
+> `s0 -b> s0` and `s1 -b> s1` in the above automaton.
 
 ## Build to JS
 
@@ -103,21 +110,4 @@ build("(s0) -f> s1", { emitFile: "./machine.js" });
 // B.js
 const machine = require("./machine.js");
 machine.dispatch("f");
-```
-
-
-## Valid transitions
-
-Any transition used in the machine definition is valid from any state.
-If a specific transition exists but isn't defined at a given state,
-the stack is simply popped.
-
-```
-const machine = inline`
-(s0) <a> s1;
-s1 -b> s1;
-`;
-
-// parses despite no transition explicitly existing for `s0 -b>`
-machine.consume("aabbbb"); 
 ```
