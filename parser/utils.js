@@ -4,6 +4,10 @@ function ParseError(msg) {
 
 ParseError.prototype = Error.prototype;
 
+function isMetaProperty(property) {
+    return property.startsWith("@@");
+}
+
 function mergeTransitions(...sources) {
     const target = {};
 
@@ -60,11 +64,22 @@ function unpackRuleStmt(ruleArr) {
      * Convert rule statement into an array of transitions
      */
     const builder = new TransitionBuilder();
+    const statesFound = [];
+
+    const pushStatesFound = (stateName) => {
+        if (!statesFound[stateName] && !isMetaProperty(stateName)) {
+            statesFound.push(stateName);
+        }
+    }
 
     ruleArr.forEach((item, i) => {
         if (item.type === "state" && i !== ruleArr.length - 1) {
             const transition = ruleArr[i + 1];
             const nextState = ruleArr[i + 2];
+
+            // TODO - why do duplicate states get through?
+            pushStatesFound(item.name);
+            pushStatesFound(nextState.name);
 
             switch (transition.direction) {
                 case "r":
@@ -88,31 +103,45 @@ function unpackRuleStmt(ruleArr) {
     return {
         initial: initialState?.name || false,
         transitions: builder.transitions,
+        statesFound,
     };
 }
 
-function applyKleene(transitions) {
-    const kleeneState = transitions["*"];
-    delete transitions["*"];
-    if (kleeneState) {
-        for (const state in transitions) {
-            for (const transitionName in kleeneState) {
-                if (!transitions[state][transitionName]) {
-                    transitions[state][transitionName] = kleeneState[transitionName]
-                } else {
-                    throw new ParseError(
-                    `Multiple possible paths from state '${state}' via transition '${transitionName}'`
-                     );
-                }
+function addRegexToTransitions(transitions, statesFound, regexp, regexState) {
+    for (const state of statesFound) {
+        for (const transitionName in regexState) {
+            if (!transitions[state]) {
+                transitions[state] = {};
+            }
+            if (!transitions[state][transitionName] && state.match(regexp)) {
+                transitions[state][transitionName] = regexState[transitionName]
+            } else if (transitions[state][transitionName]) {
+                throw new ParseError(
+                `Multiple possible paths from state '${state}' via transition '${transitionName}'`
+                 );
             }
         }
     }
 }
 
+function applyRegex(transitions, statesFound) {
+    for (const state in transitions) {
+        const [, regex] = state.split("@@regexp:")
+        if (!regex) {
+            continue;
+        }
+        const regexState = transitions[state];
+        const regexp = new RegExp(regex);
+        delete transitions[state];
+        addRegexToTransitions(transitions, statesFound, regexp, regexState);
+    }
+}
+
 function mergeRules(rules) {
     const transitions = mergeTransitions({}, ...rules.map(r => r.transitions));
+    const statesFound = [...new Set(rules.map(r => r.statesFound).flat())]
 
-    applyKleene(transitions);
+    applyRegex(transitions, statesFound);
 
     const initial = rules.find(r => r.initial)?.initial;
     if (!initial) {

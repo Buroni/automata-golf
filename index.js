@@ -9,7 +9,7 @@ function filterMetaProperties(machine) {
             }
         }
     }
-    return machine.transitions;
+    return machine;
 }
 
 function BuildError(msg) {
@@ -95,6 +95,10 @@ function build(src, { emitFile, strictActions } = {}) {
     return ret;
 }
 
+function inline(strings, ...values) {
+    return build(String.raw({ raw: strings }, ...values)).machine;
+}
+
 function main() {
     const args = process.argv.slice(2);
 
@@ -115,4 +119,4 @@ function main() {
 
 main();
 
-module.exports = build;
+module.exports = { build, inline };
