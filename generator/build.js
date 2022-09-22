@@ -17,6 +17,10 @@ function filterMetaProperties(machine) {
 }
 
 function build(src, { emitFile, strictActions } = {}) {
+    if (!strictActions) {
+        strictActions = true;
+    }
+
     const unpackedRules = parser.parse(src);
     const { initial, transitions } = unpackedRules;
     const ret = {};
@@ -30,11 +34,18 @@ function build(src, { emitFile, strictActions } = {}) {
             const stackValue = this.stack.pop();
             let transitionActionName;
 
+            const stackMatch = (t) => {
+                if (t === "_" && !stackValue) {
+                    return true;
+                }
+                return t === stackValue;
+            }
+
             for (const key in this.transitions[this.state]) {
                 if (key.startsWith(`${actionName},`)) {
                     const [, stackTransition] = key.split(",");
 
-                    if (!stackTransition || stackTransition === stackValue) {
+                    if (!stackTransition || stackMatch(stackTransition)) {
                         transitionActionName = key;
                         break;
                     }

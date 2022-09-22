@@ -20,7 +20,7 @@ via `f` to and from `s1` .
 s1 -f> s0;
 ```
 
-### Pattern matching
+## Pattern matching
 
 Regex is supported for pattern matching
 
@@ -36,7 +36,7 @@ The wildcard `*` is shorthand for `/.*/`
 * -g> t1;
 ```
 
-### Pushdown automota
+## Pushdown automota
 
 `fsm-paths` supports pushdown automota, i.e. a finite-state machine with
 a stack and transitions that push/pop the stack.
@@ -48,9 +48,20 @@ Upon the transition, it pushes `b` and `c` to the stack.
 (s0) -[f:a]b,c> s1;
 ```
 
+### Empty stack
+
+`_` matches the empty stack.
+
+```
+# The automaton terminates at the "success" state for string "aba"
+(s0) -[a:Z]a> s1;
+s1 -b> s0;
+s0 -[a:_]> success;
+```
+
 Following convention, `Z` denotes the initial stack state.
 
-### Examples
+## Examples
 
 The following example matches the language a<sup>n</sup>b<sup>n</sup>
 
@@ -61,6 +72,8 @@ const machine = inline`
 (s0) -[a:a]a,a> s0;
 s0 -[a:Z]Z,a> s0;
 s0 -[b:a]> s1;
+s0 -b> s0;
+s1 -b> s1;
 `;
 
 machine.consume("aabb").stack // ['Z']
@@ -71,10 +84,9 @@ machine.reset();
 machine.consume("aabb").stackIsInitial({ reset: true }); // true
 ```
 
-See below for the automaton for this example. Note we don't have to
-write the self-referencing `b` transitions explicitly as every transition pops the stack.
+See below for the automaton for this example. 
 
-<img src="https://i.ibb.co/f2Wd192/Screenshot-2022-09-22-at-19-48-52.png"/>
+<img src="https://i.ibb.co/0tbRWfj/Screenshot-2022-09-22-at-20-13-47.png"/>
 
 ### Build to JS
 
