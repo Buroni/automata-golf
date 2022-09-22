@@ -12,9 +12,12 @@
 "<"                         return "<";
 "-"                         return "-";
 "*"                         return "*";
+"["                         return "[";
+"]"                         return "]";
+","                         return ",";
 \/[^\/]*\/                  return "REGEX";
 
-[A-Za-z_$][A-Za-z0-9_$]*    return "IDENT";
+[A-Za-z_$][A-Za-z0-9_$:]*    return "IDENT";
 
 /lex
 
@@ -50,7 +53,10 @@ state
     | REGEX -> { type: "state", name: `@@regexp:${$1.slice(1, -1)}` }
     ;
 transition
-    : "<" IDENT ">" -> { direction: "lr", name: $2 }
-    | "<" IDENT "-" -> { direction: "l", name: $2 }
-    | "-" IDENT ">" -> { direction: "r", name: $2 }
+    : "<" IDENT ">" -> { direction: "lr", name: `${$2},` }
+    | "<" IDENT "-" -> { direction: "l", name: `${$2},` }
+    | "-" IDENT ">" -> { direction: "r", name: `${$2},` }
+    | "-" "[" IDENT "," IDENT "]" IDENT ">" -> { direction: "r", name: `${$3},${$5}`, stackVal: $7 }
+    | "-" "[" IDENT "," "]" IDENT ">" -> { direction: "r", name: `${$3},`, stackVal: $6 }
+    | "-" "[" IDENT "," IDENT "]" ">" -> { direction: "r", name: `${$3},${$5}` }
     ;

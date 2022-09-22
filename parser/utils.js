@@ -37,13 +37,25 @@ function TransitionBuilder() {
     this.transitions = {};
 
     this.addTransition = function (state, transition, nextState) {
-        const outSrc = `${transition.name}: function() { this.state = "${nextState.name}"; }`;
+        let outSrc;
+        let transitionFun;
+
+        if (transition.stackVal) {
+            transitionFun = function () {
+                this.state = nextState.name;
+                this.stack.push(...transition.stackVal.split(":"));
+            };
+            outSrc = `'${transition.name}': function() { this.state = '${nextState.name}'; this.stack.push('${transition.stackVal}') }`;
+        } else {
+            transitionFun = function () {
+                this.state = nextState.name;
+            };
+            outSrc = `'${transition.name}': function() { this.state = '${nextState.name}'; }`;
+        }
 
         const {name} = state;
         const transitionObj = {
-            [transition.name]: function () {
-                this.state = nextState.name;
-            },
+            [transition.name]: transitionFun,
             [`$$src_${transition.name}`] : outSrc,
         };
 
@@ -139,7 +151,7 @@ function applyRegex(transitions, statesFound) {
 
 function mergeRules(rules) {
     const transitions = mergeTransitions({}, ...rules.map(r => r.transitions));
-    const statesFound = [...new Set(rules.map(r => r.statesFound).flat())]
+    const statesFound = [...new Set(rules.map(r => r.statesFound).flat())];
 
     applyRegex(transitions, statesFound);
 

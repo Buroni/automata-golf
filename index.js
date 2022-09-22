@@ -19,6 +19,7 @@ BuildError.prototype = Error.prototype;
 
 function emit(machine, f) {
     let src = `var fsm = {
+    stack: [],
     state: '${machine.state}',
     dispatch: function(actionName) {
         var action = this.transitions[this.state][actionName];
@@ -66,11 +67,26 @@ function build(src, { emitFile, strictActions } = {}) {
     const ret = {};
 
     const machine = {
+        stack: [],
         state: initial,
         transitions,
         dispatch: function(actionName) {
+            const stackValue = this.stack.pop();
+            // console.log("--", actionName, stackValue)
+            let transitionActionName;
+            for (const key in this.transitions[this.state]) {
+                if (key.startsWith(actionName)) {
+                    // console.log(key, actionName)
+                    const [, stackTransition] = key.split(",");
+                    if (!stackTransition || stackTransition === stackValue) {
+                        transitionActionName = key;
+                        break;
+                    }
+                }
+            }
+
             try {
-                const action = this.transitions[this.state][actionName];
+                const action = this.transitions[this.state][transitionActionName];
                 action.call(this);
             } catch(e) {
                 if (strictActions) {
