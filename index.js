@@ -61,7 +61,7 @@ function emit(machine, f) {
     return src;
 }
 
-function build(src, { emitFile, strictActions } = {}) {
+function build(src, { emitFile, strictActions } = { strictActions: true }) {
     const unpackedRules = parser.parse(src);
     const { initial, transitions } = unpackedRules;
     const ret = {};
@@ -72,11 +72,9 @@ function build(src, { emitFile, strictActions } = {}) {
         transitions,
         dispatch: function(actionName) {
             const stackValue = this.stack.pop();
-            // console.log("--", actionName, stackValue)
             let transitionActionName;
             for (const key in this.transitions[this.state]) {
-                if (key.startsWith(actionName)) {
-                    // console.log(key, actionName)
+                if (key.startsWith(`${actionName},`)) {
                     const [, stackTransition] = key.split(",");
                     if (!stackTransition || stackTransition === stackValue) {
                         transitionActionName = key;
@@ -87,6 +85,10 @@ function build(src, { emitFile, strictActions } = {}) {
 
             try {
                 const action = this.transitions[this.state][transitionActionName];
+                // if (!action && strictActions) {
+                //     throw BuildError(`Invalid action: '${actionName}' from state '${this.state}'`);
+                // }
+                // console.log(action)
                 action.call(this);
             } catch(e) {
                 if (strictActions) {

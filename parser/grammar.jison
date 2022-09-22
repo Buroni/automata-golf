@@ -57,7 +57,13 @@ transition
     : "<" IDENT ">" -> { direction: "lr", name: `${$2},` }
     | "<" IDENT "-" -> { direction: "l", name: `${$2},` }
     | "-" IDENT ">" -> { direction: "r", name: `${$2},` }
-    | "-" "[" IDENT "|" IDENT "]" IDENT ">" -> { direction: "r", name: `${$3},${$5}`, stackVal: $7 }
-    | "-" "[" IDENT "]" IDENT ">" -> { direction: "r", name: `${$3},`, stackVal: $5 }
-    | "-" "[" IDENT "|" IDENT "]" ">" -> { direction: "r", name: `${$3},${$5}` }
+    | "<" pda_definition ">" -> { direction: "lr", ...$2 }
+    | "<" pda_definition "-" -> { direction: "l", ...$2 }
+    | "-" pda_definition ">" -> { direction: "r", ...$2 }
+    ;
+pda_definition
+    : "[" IDENT "|" IDENT "]" IDENT -> { name: `${$2},${$4}`, stackVal: $6}
+    | "[" IDENT "]" IDENT -> { name: `${$2},`, stackVal: $4 }
+    | "[" IDENT "]" -> { name: `${$2},` }
+    | "[" IDENT "|" IDENT "]" -> { name: `${$2},${$4}` }
     ;
