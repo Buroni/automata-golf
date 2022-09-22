@@ -20,7 +20,7 @@ BuildError.prototype = Error.prototype;
 function emit(machine, strictActions, f) {
     let src = `var fsm = {
     strictActions: ${strictActions},
-    stack: [],
+    stack: ['Z'],
     state: '${machine.state}',
     dispatch: function(actionName) {
         var stackValue = this.stack.pop();
@@ -49,6 +49,10 @@ function emit(machine, strictActions, f) {
             var transitionName = f(states[i]);
             this.dispatch(transitionName);
         }
+        return this;
+    },
+    stackIsInitial: function() {
+        return this.stack.length === 1 && this.stack[0] === "Z";
     },
     transitions: {
 `;
@@ -75,13 +79,13 @@ function emit(machine, strictActions, f) {
     return src;
 }
 
-function build(src, { emitFile, strictActions } = { strictActions: true }) {
+function build(src, { emitFile, strictActions } = {}) {
     const unpackedRules = parser.parse(src);
     const { initial, transitions } = unpackedRules;
     const ret = {};
 
     const machine = {
-        stack: [],
+        stack: ["Z"],
         state: initial,
         transitions,
         dispatch: function(actionName) {
@@ -111,6 +115,10 @@ function build(src, { emitFile, strictActions } = { strictActions: true }) {
                 const transitionName = f(s);
                 this.dispatch(transitionName);
             }
+            return this;
+        },
+        stackIsInitial: function() {
+            return this.stack.length === 1 && this.stack[0] === "Z";
         }
     };
 
