@@ -25,12 +25,15 @@ function build(src, { emitFile, strictActions } = {}) {
         stack: ["Z"],
         state: initial,
         transitions,
+
         dispatch: function(actionName) {
             const stackValue = this.stack.pop();
             let transitionActionName;
+
             for (const key in this.transitions[this.state]) {
                 if (key.startsWith(`${actionName},`)) {
                     const [, stackTransition] = key.split(",");
+
                     if (!stackTransition || stackTransition === stackValue) {
                         transitionActionName = key;
                         break;
@@ -47,6 +50,7 @@ function build(src, { emitFile, strictActions } = {}) {
                 }
             }
         },
+
         consume: function(states, f = token => token) {
             for (const s of states) {
                 const transitionName = f(s);
@@ -54,6 +58,7 @@ function build(src, { emitFile, strictActions } = {}) {
             }
             return this;
         },
+
         stackIsInitial: function({ reset } = {reset: false}) {
             const isInitial = this.stack.length === 1 && this.stack[0] === "Z";
             if (reset) {
@@ -61,11 +66,13 @@ function build(src, { emitFile, strictActions } = {}) {
             }
             return isInitial;
         },
+
         reset: function() {
             this.stack = ["Z"];
             this.state = initial;
             return this;
         },
+
         _serialize: function(f) {
             const serialized = serialize.call(this, initial, strictActions, transitions);
             if (f) {
