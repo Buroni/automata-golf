@@ -15,7 +15,7 @@
 "["                         return "[";
 "]"                         return "]";
 ","                         return ",";
-"|"                         return "|";
+":"                         return ":";
 \/[^\/]*\/                  return "REGEX";
 
 [A-Za-z_$][A-Za-z0-9_$,]*    return "IDENT";
@@ -62,8 +62,10 @@ transition
     | "-" pda_definition ">" -> { direction: "r", ...$2 }
     ;
 pda_definition
-    : "[" IDENT "|" IDENT "]" IDENT -> { name: `${$2},${$4}`, stackVal: $6}
+    : "[" IDENT ":" IDENT "]" IDENT -> { name: `${$2},${$4}`, stackVal: $6}
     | "[" IDENT "]" IDENT -> { name: `${$2},`, stackVal: $4 }
+    | IDENT "[" IDENT ":" IDENT "]" -> { name: `${$3},${$5}`, stackVal: $1}
+    | IDENT "[" IDENT "]" -> { name: `${$3},`, stackVal: $1 }
     | "[" IDENT "]" -> { name: `${$2},` }
-    | "[" IDENT "|" IDENT "]" -> { name: `${$2},${$4}` }
+    | "[" IDENT ":" IDENT "]" -> { name: `${$2},${$4}` }
     ;
