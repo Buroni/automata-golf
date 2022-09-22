@@ -1,3 +1,5 @@
+const { pureTransitionSrc, impureTransitionSrc } = require("../generator/emit.js");
+
 function ParseError(msg) {
     throw `FSM parse error: ${msg}`;
 }
@@ -45,19 +47,12 @@ function TransitionBuilder() {
                 this.state = nextState.name;
                 this.stack.push(...transition.stackVal.split(","));
             };
-            outSrc = `'${transition.name}': 
-                function() { 
-                    this.state = '${nextState.name}'; 
-                    this.stack.push(${transition.stackVal.split(",").map(el => `'${el}'`).join(",")});
-                 }`;
+            outSrc = impureTransitionSrc(transition.name, nextState.name, transition.stackVal);
         } else {
             transitionFun = function () {
                 this.state = nextState.name;
             };
-            outSrc = `'${transition.name}': 
-                function() { 
-                    this.state = '${nextState.name}'; 
-                }`;
+            outSrc = pureTransitionSrc(transition.name, nextState.name);
         }
 
         const {name} = state;
