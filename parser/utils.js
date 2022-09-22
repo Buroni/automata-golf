@@ -63,7 +63,7 @@ function TransitionBuilder() {
         const {name} = state;
         const transitionObj = {
             [transition.name]: transitionFun,
-            [`$$src_${transition.name}`] : outSrc,
+            [`@@src_${transition.name}`] : outSrc,
         };
 
         if (!this.transitions[name]) {
@@ -86,7 +86,7 @@ function unpackRuleStmt(ruleArr) {
     const statesFound = [];
 
     const pushStatesFound = (stateName) => {
-        if (!statesFound[stateName] && !isMetaProperty(stateName)) {
+        if (!statesFound.includes(stateName) && !isMetaProperty(stateName)) {
             statesFound.push(stateName);
         }
     }
@@ -96,7 +96,6 @@ function unpackRuleStmt(ruleArr) {
             const transition = ruleArr[i + 1];
             const nextState = ruleArr[i + 2];
 
-            // TODO - why do duplicate states get through?
             pushStatesFound(item.name);
             pushStatesFound(nextState.name);
 

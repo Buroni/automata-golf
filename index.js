@@ -54,12 +54,17 @@ function emit(machine, strictActions, f) {
     stackIsInitial: function() {
         return this.stack.length === 1 && this.stack[0] === "Z";
     },
+    reset: function() {
+        this.stack = ["Z"];
+        this.state = '${machine.state}';
+        return this;
+    },
     transitions: {
 `;
     for (const [name, transitions] of Object.entries(machine.transitions)) {
         const transitionSrc = [];
         for (const key in transitions) {
-            if (key.startsWith("$$src")) {
+            if (key.startsWith("@@src")) {
                 transitionSrc.push(transitions[key])
             }
         }
@@ -117,8 +122,17 @@ function build(src, { emitFile, strictActions } = {}) {
             }
             return this;
         },
-        stackIsInitial: function() {
-            return this.stack.length === 1 && this.stack[0] === "Z";
+        stackIsInitial: function({ reset } = {reset: false}) {
+            const isInitial = this.stack.length === 1 && this.stack[0] === "Z";
+            if (reset) {
+                this.reset();
+            }
+            return isInitial;
+        },
+        reset: function() {
+            this.stack = ["Z"];
+            this.state = initial;
+            return this;
         }
     };
 
