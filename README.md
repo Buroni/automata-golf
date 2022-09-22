@@ -38,8 +38,7 @@ The wildcard `*` is shorthand for `/.*/`
 
 ## Pushdown automota
 
-`automata-golf
-` supports pushdown automota, i.e. a finite-state machine with
+`automata-golf` supports pushdown automota, i.e. a finite-state machine with
 a stack and transitions that push/pop the stack.
 
 The following transitions to `s1` via `f` when `a` is top of the stack. 
