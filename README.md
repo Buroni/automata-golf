@@ -44,6 +44,9 @@ a stack and transitions that push/pop the stack.
 The following transitions to `s1` via `f` when `a` is top of the stack. 
 Upon the transition, it pushes `b` and `c` to the stack.
 
+Note that the stack is popped on every transition, even ones that don't use the
+stack value e.g. `s1 -f> s2`.
+
 ```
 (s0) -[f:a]b,c> s1;
 ```
