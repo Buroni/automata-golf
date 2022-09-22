@@ -1,9 +1,9 @@
-# fsm-paths
+# automata-golf
 
 A domain-specific language (DSL) for creating finite-state machines and pushdown automota. 
 Mostly for fun.
 
-In `fsm-paths`, a machine is defined by a series of path statements. 
+In `automata-golf`, a machine is defined by a series of path statements. 
 There's no need to explicitly define states or transitions.
 
 The example below shows a machine with an initial state `s0`, which transitions
@@ -38,7 +38,8 @@ The wildcard `*` is shorthand for `/.*/`
 
 ## Pushdown automota
 
-`fsm-paths` supports pushdown automota, i.e. a finite-state machine with
+`automata-golf
+` supports pushdown automota, i.e. a finite-state machine with
 a stack and transitions that push/pop the stack.
 
 The following transitions to `s1` via `f` when `a` is top of the stack. 
@@ -71,7 +72,7 @@ s0 -[a:_]> success;
 The following example matches the language a<sup>n</sup>b<sup>n</sup>
 
 ```js
-const { inline } = require("fsm-paths/index.js");
+const { inline } = require("automata-golf/index.js");
 
 const machine = inline`
 (s0) -[a:a]a,a> s0;
@@ -97,7 +98,7 @@ The machine can be written to a JS file
 
 ```js
 // A.js
-const { build } = require("fsm-paths/index.js");
+const { build } = require("automata-golf/index.js");
 build("(s0) -f> s1", { emitFile: "./machine.js" });
 
 // B.js
