@@ -16,13 +16,9 @@ function filterMetaProperties(machine) {
     return machine;
 }
 
-function build(src, { emitFile, strictActions } = {}) {
-    if (!strictActions) {
-        strictActions = true;
-    }
-
+function build(src, { emitFile } = {}) {
     const unpackedRules = parser.parse(src);
-    const { initial, transitions } = unpackedRules;
+    const { initial, transitions, transitionsFound } = unpackedRules;
     const ret = {};
 
     const machine = {
@@ -56,7 +52,7 @@ function build(src, { emitFile, strictActions } = {}) {
                 const action = this.transitions[this.state][transitionActionName];
                 action.call(this);
             } catch(e) {
-                if (strictActions) {
+                if (!transitionsFound.includes(actionName)) {
                     throw BuildError(`Invalid action: '${actionName}' from state '${this.state}'`);
                 }
             }
@@ -85,7 +81,7 @@ function build(src, { emitFile, strictActions } = {}) {
         },
 
         _serialize: function(f) {
-            const serialized = serialize.call(this, initial, strictActions, transitions);
+            const serialized = serialize.call(this, initial, transitions);
             if (f) {
                 fs.writeFile(f, serialized, (err) => {
                     if (err) {

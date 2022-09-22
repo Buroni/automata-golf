@@ -22,7 +22,7 @@ function makeTransitionSrc(transitionName, nextState, stackVal) {
 
 }
 
-function serialize(initial, strictActions, transitions) {
+function serialize(initial, transitions) {
     let serialized = `
 function BuildError(msg) {
     throw \`FSM build error: \${msg}\`;
@@ -30,7 +30,6 @@ function BuildError(msg) {
 BuildError.prototype = Error.prototype;
 
 const initial = "${initial}";
-const strictActions = ${strictActions};
 const fsm = {
     stack: ['Z'], 
     state: ['${initial}'],

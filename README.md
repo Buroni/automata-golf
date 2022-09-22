@@ -52,7 +52,10 @@ Note that the stack is popped on every transition, even ones that don't use the
 stack value e.g. `s1 -f> s2`.
 
 
-### Empty stack
+### Initial and empty stack
+
+Following convention, the stack initiates as `[Z]` where `Z`
+is the initial stack symbol.
 
 `_` matches the empty stack.
 
@@ -62,8 +65,6 @@ stack value e.g. `s1 -f> s2`.
 s1 -b> s0;
 s0 -[a:_]> success;
 ```
-
-Following convention, `Z` denotes the initial stack state.
 
 ## Examples
 
@@ -76,8 +77,6 @@ const machine = inline`
 (s0) -[a:a]a,a> s0;
 s0 -[a:Z]Z,a> s0;
 s0 -[b:a]> s1;
-s0 -b> s0;
-s1 -b> s1;
 `;
 
 machine.consume("aabb").stack // ['Z']
@@ -90,9 +89,9 @@ machine.consume("aabb").stackIsInitial({ reset: true }); // true
 
 See below for the automaton for this example. 
 
-<img src="https://i.ibb.co/0tbRWfj/Screenshot-2022-09-22-at-20-13-47.png"/>
+<img src="https://i.ibb.co/4W51LWN/Screenshot-2022-09-22-at-23-05-26.png"/>
 
-### Build to JS
+## Build to JS
 
 The machine can be written to a JS file
 
@@ -104,4 +103,21 @@ build("(s0) -f> s1", { emitFile: "./machine.js" });
 // B.js
 const machine = require("./machine.js");
 machine.dispatch("f");
+```
+
+
+## Valid transitions
+
+Any transition used in the machine definition is valid from any state.
+If a specific transition exists but isn't defined at a given state,
+the stack is simply popped.
+
+```
+const machine = inline`
+(s0) <a> s1;
+s1 -b> s1;
+`;
+
+// parses despite no transition explicitly existing for `s0 -b>`
+machine.consume("aabbbb"); 
 ```

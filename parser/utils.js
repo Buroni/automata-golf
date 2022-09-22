@@ -72,20 +72,22 @@ function unpackRuleStmt(ruleArr) {
      */
     const builder = new TransitionBuilder();
     const statesFound = [];
+    const transitionsFound = [];
 
-    const pushStatesFound = (stateName) => {
-        if (!statesFound.includes(stateName) && !isMetaProperty(stateName)) {
-            statesFound.push(stateName);
+    const pushFound = (arr, name) => {
+        if (!arr.includes(name) && !isMetaProperty(name)) {
+            arr.push(name);
         }
-    }
+    };
 
     ruleArr.forEach((item, i) => {
         if (item.type === "state" && i !== ruleArr.length - 1) {
             const transition = ruleArr[i + 1];
             const nextState = ruleArr[i + 2];
 
-            pushStatesFound(item.name);
-            pushStatesFound(nextState.name);
+            pushFound(statesFound, item.name);
+            pushFound(statesFound, nextState.name);
+            pushFound(transitionsFound, transition.name.split(",")[0]);
 
             switch (transition.direction) {
                 case "r":
@@ -110,6 +112,7 @@ function unpackRuleStmt(ruleArr) {
         initial: initialState?.name || false,
         transitions: builder.transitions,
         statesFound,
+        transitionsFound,
     };
 }
 
@@ -146,6 +149,7 @@ function applyRegex(transitions, statesFound) {
 function mergeRules(rules) {
     const transitions = mergeTransitions({}, ...rules.map(r => r.transitions));
     const statesFound = [...new Set(rules.map(r => r.statesFound).flat())];
+    const transitionsFound = [...new Set(rules.map(r => r.transitionsFound).flat())];
 
     applyRegex(transitions, statesFound);
 
@@ -159,6 +163,7 @@ function mergeRules(rules) {
     return {
         initial,
         transitions,
+        transitionsFound,
     }
 }
 
