@@ -88,9 +88,7 @@ The following example matches the language a<sup>n</sup>b<sup>n</sup>
 const { inline } = require("automata-golf/index.js");
 
 const machine = inline`
-(s0) -[a:a]a,a> s0;
-s0 -[a:Z]Z,a> s0;
-s0 -[b:a]> s1;
+(s0) -[a:a]a,a> s0 -[a:Z]Z,a> s0 -[b:a]> s1;
 `;
 
 machine.consume("aabb").stack // ['Z']
