@@ -1,3 +1,9 @@
+/**
+ * Logic and source code for converting machine javascript object
+ * to a string that can be written and loaded from a JS file
+ */
+
+
 const { isMetaProperty } = require("../utils");
 
 function EventEmitter() {
@@ -17,6 +23,10 @@ function EventEmitter() {
 }
 
 function impureTransitionSrc(transitionName, nextState, stackVal) {
+    /**
+     * Transition source code with stack push,
+     * e.g. `s1 -[f]a> s2`
+     */
     return `'${transitionName}': 
         function() { 
             this.state = '${nextState}'; 
@@ -25,6 +35,10 @@ function impureTransitionSrc(transitionName, nextState, stackVal) {
 }
 
 function pureTransitionSrc(transitionName, nextState) {
+    /**
+     * Transition source code without stack push,
+     * e.g. `s1 -f> s2`
+     */
     return `'${transitionName}': 
         function() { 
             this.state = '${nextState}'; 
