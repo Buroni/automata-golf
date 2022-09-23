@@ -59,7 +59,7 @@ is the initial stack symbol.
 
 `_` matches the empty stack.
 
-```
+```js
 # The automaton terminates at the "success" state for string "aba"
 (s0) -[a:Z]a> s1;
 s1 -b> s0;
@@ -72,12 +72,21 @@ s0 -[a:_]> success;
 
 This self-driving robot can only go backwards and forwards, and switches direction when it detects a collision.
 
-```
+```js
 const machine = inline`
 (off) <push> forward <collide> backward -push> off;
 `;
 
-machine.consume(["push", "collide", "collide"]).state; // forward
+machine.subscribe((state, action, stack) => {
+    console.log(`Robot is at state ${state}`);
+});
+
+machine.consume(["push", "collide", "collide"]);
+
+// Console:
+// Robot is at state forward
+// Robot is at state backward
+// Robot is at state forward
 ```
 
 ### a<sup>n</sup>b<sup>n</sup>
@@ -122,4 +131,13 @@ build("(s0) -f> s1", { emitFile: "./machine.js" });
 // B.js
 const machine = require("./machine.js");
 machine.dispatch("f");
+```
+
+### Target
+
+Set `target` to `'browser'` to generate a machine that can be run in a browser 
+environment:
+
+```js
+build("(s0) -f> s1", { emitFile: "./machine.js", target: "browser" });
 ```
