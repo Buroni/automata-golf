@@ -59,7 +59,7 @@ is the initial stack symbol.
 
 `_` matches the empty stack.
 
-```js
+```
 # The automaton terminates at the "success" state for string "aba"
 (s0) -[a:Z]a> s1;
 s1 -b> s0;
