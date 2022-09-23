@@ -1,5 +1,21 @@
 const { isMetaProperty } = require("../utils");
 
+function EventEmitter() {
+    /**
+     * Polyfill for node `EventEmitter`
+     * Note: should only be run in a browser, as `CustomEvent`
+     * isn't available in node < 18
+     */
+    this.emit = function(evtName, ...detail) {
+        const evt = new CustomEvent("transition", { detail });
+        self.dispatchEvent(evt);
+    }
+
+    this.on = function(evtName, cb) {
+        self.addEventListener(evtName, evt => cb(...evt.detail));
+    }
+}
+
 function impureTransitionSrc(transitionName, nextState, stackVal) {
     return `'${transitionName}': 
         function() { 
@@ -22,20 +38,28 @@ function makeTransitionSrc(transitionName, nextState, stackVal) {
 
 }
 
-function serialize(initial, transitions) {
+function serialize(initial, transitions, transitionsFound, { target, name } = { target: "node" }) {
+    if (target === "browser" && !name) {
+        throw new Error("`name` property must be defined when `target` property is 'browser'");
+    }
     let serialized = `
 function BuildError(msg) {
     throw \`FSM build error: \${msg}\`;
 }
 BuildError.prototype = Error.prototype;
 
+${target === "node" ? "" : EventEmitter.toString()}
+
 const initial = "${initial}";
+const transitionsFound = ${JSON.stringify(transitionsFound)};
 const fsm = {
     stack: ['Z'], 
     state: ['${initial}'],
+    emitter: new EventEmitter(),
     consume: ${this.consume.toString()},
     dispatch: ${this.dispatch.toString()},
     reset: ${this.reset.toString()},
+    subscribe: ${this.subscribe.toString()},
     stackIsInitial: ${this.stackIsInitial.toString()},
     transitions: {
 `;
@@ -52,7 +76,7 @@ const fsm = {
     }
 
     serialized += "}\n};"
-    serialized += "\nmodule.exports = fsm;\n";
+    serialized += target === "node" ? "\nmodule.exports = fsm;\n" : `\nwindow.${name} = fsm;\n`;
 
     return serialized;
 }

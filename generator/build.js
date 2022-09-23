@@ -3,6 +3,7 @@ const { serialize } = require("../generator/serialize.js");
 const { BuildError } = require("../utils.js");
 const { isMetaProperty } = require("../utils");
 const fs = require("fs");
+const { EventEmitter } = require("events");
 
 function filterMetaProperties(machine) {
     delete machine._serialize;
@@ -16,7 +17,7 @@ function filterMetaProperties(machine) {
     return machine;
 }
 
-function build(src, { emitFile } = {}) {
+function build(src, { emitFile, target, name } = {}) {
     const unpackedRules = parser.parse(src);
     const { initial, transitions, transitionsFound } = unpackedRules;
     const ret = {};
@@ -24,6 +25,7 @@ function build(src, { emitFile } = {}) {
     const machine = {
         stack: ["Z"],
         state: initial,
+        emitter: new EventEmitter(),
         transitions,
 
         dispatch: function(actionName) {
@@ -51,6 +53,7 @@ function build(src, { emitFile } = {}) {
             try {
                 const action = this.transitions[this.state][transitionActionName];
                 action.call(this);
+                this.emitter.emit("transition", this.state, actionName, this.stack)
             } catch(e) {
                 if (!transitionsFound.includes(actionName)) {
                     throw BuildError(`Invalid action: '${actionName}' from state '${this.state}'`);
@@ -80,8 +83,12 @@ function build(src, { emitFile } = {}) {
             return this;
         },
 
-        _serialize: function(f) {
-            const serialized = serialize.call(this, initial, transitions);
+        subscribe: function(cb) {
+            this.emitter.on("transition", (state, action, stack) => cb(state, action, stack));
+        },
+
+        _serialize: function(f, { target, name } = { target: "node" }) {
+            const serialized = serialize.call(this, initial, transitions, transitionsFound, { target, name });
             if (f) {
                 fs.writeFile(f, serialized, (err) => {
                     if (err) {
@@ -94,9 +101,9 @@ function build(src, { emitFile } = {}) {
     };
 
     if (emitFile && typeof emitFile === "string") {
-        ret.src = machine._serialize(emitFile)
+        ret.src = machine._serialize(emitFile, { target, name })
     } else if (emitFile) {
-        ret.src = machine._serialize();
+        ret.src = machine._serialize(null, { target, name });
     }
     ret.machine = filterMetaProperties(machine);
     return ret;
