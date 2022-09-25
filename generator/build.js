@@ -51,7 +51,7 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
     const ret = {};
 
     const machine = {
-        stack: ["Z"],
+        stack: [],
         state: initial,
         input: [],
         emitter: new EventEmitter(),
@@ -62,8 +62,6 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
             if (typeof input === "string") {
                 input = input.split("");
             }
-            // `this.input` isn't used internally
-            this.input = input;
             return this._consume(...input);
         },
 
@@ -71,7 +69,7 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
             /**
              * Dispatches each token in an iterable `states` value
              */
-            
+
             this.input.shift();
 
             if (!head) {
@@ -80,14 +78,18 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
 
             const stackValue = this.stack.pop();
             const compositeKey = this._findCompositeKey(head, stackValue);
+            const epsilonCompositeKey = this._findCompositeKey("_", stackValue);
+            const stateTransitions = this.transitions[this.state];
 
-            if (!this.transitions[this.state] || !this.transitions[this.state][compositeKey]) {
+            if (!stateTransitions || !(stateTransitions[compositeKey] || stateTransitions[epsilonCompositeKey])) {
                 this.halted = true;
                 return this;
             }
             this.halted = false;
 
-            const actions = this.transitions[this.state][compositeKey];
+            const actions = []
+                .concat(stateTransitions[compositeKey] || [])
+                .concat(stateTransitions[epsilonCompositeKey] || []);
 
             if (actions.length === 1) {
                 actions[0].fn.call(this);
@@ -95,7 +97,6 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
             } else {
                 const snapshot = this._clone();
                 for (const action of actions) {
-                    // console.log(snapshot.state, action)
                     action.fn.call(snapshot);
                     snapshot._consume(...tail);
                     if (snapshot._inAcceptState()) {
