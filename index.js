@@ -19,6 +19,6 @@ function main() {
     }
 }
 
-main();
+// main();
 
 module.exports = { build, inline };

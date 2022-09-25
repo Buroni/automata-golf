@@ -23,7 +23,7 @@ function filterMetaProperties(machine) {
     return machine;
 }
 
-function build(src, { emitFile, target, name } = {}) {
+function build(src, { emitFile, target, name, strictTransitions } = {}) {
     /**
      * Parses the given source and generates a machine.
      *
@@ -42,43 +42,67 @@ function build(src, { emitFile, target, name } = {}) {
      *  NOTE: All code used in methods on the `machine` object should originate from the object, so that the
      *        object can be serialized correctly. E.g. `require` or using a resource defined elsewhere in this file
      */
+    if (typeof strictTransitions === "undefined") {
+        strictTransitions = true;
+    }
+
     const unpackedRules = parser.parse(src);
-    const { initial, transitions, transitionsFound } = unpackedRules;
+    const { initial, transitions, transitionsFound, acceptStates } = unpackedRules;
     const ret = {};
 
     const machine = {
         stack: ["Z"],
         state: initial,
+        input: [],
         emitter: new EventEmitter(),
         transitions,
+        acceptStates,
 
-        dispatch: function(transitionName) {
-            /**
-             * Performs a transition in the machine from a given transition token.
-             * e.g. `dispatch("f")` moves the state from `s0` to `s1` in `s0 -f> s1`
-             */
-            const stackValue = this.stack.pop();
-            // E.g. the transition for `f,a` if the requested transition is `f` and `a` is on top of the stack
-            const transitionStateComposite = this._findCompositeKey(transitionName, stackValue);
-
-            try {
-                const action = this.transitions[this.state][transitionStateComposite];
-                action.call(this);
-            } catch(e) {
-                if (!transitionsFound.includes(transitionName)) {
-                    throw BuildError(`Invalid action: '${transitionName}' from state '${this.state}'`);
-                }
+        consume: function(input) {
+            if (typeof input === "string") {
+                input = input.split("");
             }
-            this.emitter.emit("transition", this.state, transitionName, this.stack);
+            // `this.input` isn't used internally
+            this.input = input;
+            return this._consume(...input);
         },
 
-        consume: function(states, f = token => token) {
+        _consume: function(head, ...tail) {
             /**
              * Dispatches each token in an iterable `states` value
              */
-            for (const s of states) {
-                const transitionName = f(s);
-                this.dispatch(transitionName);
+            
+            this.input.shift();
+
+            if (!head) {
+                return this;
+            }
+
+            const stackValue = this.stack.pop();
+            const compositeKey = this._findCompositeKey(head, stackValue);
+
+            if (!this.transitions[this.state] || !this.transitions[this.state][compositeKey]) {
+                this.halted = true;
+                return this;
+            }
+            this.halted = false;
+
+            const actions = this.transitions[this.state][compositeKey];
+
+            if (actions.length === 1) {
+                actions[0].fn.call(this);
+                this._consume(...tail);
+            } else {
+                const snapshot = this._clone();
+                for (const action of actions) {
+                    // console.log(snapshot.state, action)
+                    action.fn.call(snapshot);
+                    snapshot._consume(...tail);
+                    if (snapshot._inAcceptState()) {
+                        Object.assign(this, snapshot);
+                        break;
+                    }
+                }
             }
             return this;
         },
@@ -101,7 +125,7 @@ function build(src, { emitFile, target, name } = {}) {
         },
 
         subscribe: function(cb) {
-            this.emitter.on("transition", (state, action, stack) => cb(state, action, stack));
+            this.emitter.on("transition", (state, action, stackTop) => cb(state, action, stackTop));
         },
 
         _serialize: function(f, { target, name } = { target: "node" }) {
@@ -132,6 +156,7 @@ function build(src, { emitFile, target, name } = {}) {
         },
 
         _findCompositeKey: function(transitionName, stackValue) {
+            // TODO - simplify
             /**
              * Given a transition name e.g. `f`, finds the composite {transition},{state} transition
              * for the current stack value if it exists.
@@ -147,6 +172,25 @@ function build(src, { emitFile, target, name } = {}) {
                     }
                 }
             }
+        },
+
+        _inAcceptState: function() {
+            // TODO - need to check if halted?
+            if (this.halted) {
+                return false;
+            }
+            const { input, stack, state } = this;
+            return !input.length && (!stack.length || this.acceptStates.includes(state));
+        },
+
+        _clone: function() {
+            return {
+                ...this,
+                stack: [...this.stack],
+                state: this.state,
+                emitter: null,
+                halted: false,
+            };
         }
     };
 

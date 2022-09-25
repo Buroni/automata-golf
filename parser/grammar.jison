@@ -16,6 +16,7 @@
 "]"                         return "]";
 ","                         return ",";
 ":"                         return ":";
+"."                         return ".";
 \/[^\/]*\/                  return "REGEX";
 
 [A-Za-z_$][A-Za-z0-9_$,]*    return "IDENT";
@@ -48,7 +49,9 @@ rule_transition
     : state transition -> [$1, { type: "transition", ...$2 }]
     ;
 state
-    : "(" IDENT ")" -> { type: "state", name: $2, initial: true }
+    : "(" IDENT ")" -> { type: "state", name: $2, accept: true }
+    | "(" "." IDENT ")" -> { type: "state", name: $2, initial: true, accept: true }
+    | "." IDENT -> { type: "state", name: $2, initial: true }
     | IDENT -> { type: "state", name: $1 }
     | "*" -> { type: "state", name: "@@regexp:.*" }
     | REGEX -> { type: "state", name: `@@regexp:${$1.slice(1, -1)}` }

@@ -49,14 +49,14 @@ function mergeRuleToTarget(rule, state, target) {
     /**
      * For each transition at the given state, assign it to the target object.
      */
-    for (const transition in rule[state]) {
-        if (!target[state][transition]) {
-            target[state][transition] = rule[state][transition];
-        } else {
-            throw new ParseError(
-                `Multiple possible paths from state '${state}' via transition '${transition}'`
-            );
+    for (const transitionName in rule[state]) {
+        if (!target[state][transitionName]) {
+            target[state][transitionName] = [];
         }
+        if (Array.isArray(rule[state][transitionName]))
+            target[state][transitionName].push(...rule[state][transitionName]);
+        else
+            target[state][transitionName].push(rule[state][transitionName]);
     }
 }
 
@@ -118,7 +118,7 @@ function TransitionBuilder() {
         const { name } = state;
 
         const transitionObj = {
-            [transition.name]: fn,
+            fn,
             // @@ values are used for generating source code, as the needed
             // value is hidden inside the function closure during code generation.
             [`@@nextState_${transition.name}`]: nextState.name,
@@ -129,14 +129,14 @@ function TransitionBuilder() {
         }
 
         if (!this.transitions[name]) {
-            this.transitions[name] = transitionObj;
-        } else if (this.transitions[name][transition.name]) {
-            throw new ParseError(
-                `Multiple possible paths from state '${name}' via transition '${transition.name}'`
-            );
-        } else {
-            Object.assign(this.transitions[name], transitionObj);
+            this.transitions[name] = [];
         }
+
+        if (!this.transitions[name][transition.name]) {
+            this.transitions[name][transition.name] = [];
+        }
+
+        this.transitions[name][transition.name].push(transitionObj);
     }
 }
 
@@ -150,6 +150,7 @@ function unpackRuleStmt(ruleArr) {
     // might only be defined as destination nodes (e.g. `source -f> destination`)
     const statesFound = [];
     const transitionsFound = [];
+    const acceptStates = [];
 
     const pushFound = (arr, name) => {
         if (!arr.includes(name) && !isMetaProperty(name)) {
@@ -165,6 +166,9 @@ function unpackRuleStmt(ruleArr) {
             pushFound(statesFound, state.name);
             pushFound(statesFound, nextState.name);
             pushFound(transitionsFound, transition.name.split(",")[0]);
+
+            state.accept && pushFound(acceptStates, state.name);
+            nextState.accept && pushFound(acceptStates, nextState.name);
 
             switch (transition.direction) {
                 case "r":
@@ -190,10 +194,12 @@ function unpackRuleStmt(ruleArr) {
         transitions: builder.transitions,
         statesFound,
         transitionsFound,
+        acceptStates,
     };
 }
 
 function addRegexToTransitions(transitions, statesFound, regexp, regexState) {
+    // TODO - update for NPDAs
     /**
      * Search for states matching given regex pattern, and add th transitions for that regex state
      * if the state matches.
@@ -203,12 +209,11 @@ function addRegexToTransitions(transitions, statesFound, regexp, regexState) {
             if (!transitions[state]) {
                 transitions[state] = {};
             }
-            if (!transitions[state][transitionName] && state.match(regexp)) {
-                transitions[state][transitionName] = regexState[transitionName]
-            } else if (transitions[state][transitionName]) {
-                throw new ParseError(
-                `Multiple possible paths from state '${state}' via transition '${transitionName}'`
-                 );
+            if (state.match(regexp)) {
+                if (!transitions[state][transitionName]) {
+                    transitions[state][transitionName] = [];
+                }
+                transitions[state][transitionName].push(...regexState[transitionName]);
             }
         }
     }
@@ -245,9 +250,9 @@ function mergeRules(rules) {
      * Merges array of processed rule objects into a single object
      */
     const flatUnique = (arr, prop) => [...new Set(arr.map(r => r[prop]).flat())];
-
     const transitions = mergeTransitions({}, ...rules.map(r => r.transitions));
     const statesFound = flatUnique(rules, "statesFound");
+    const acceptStates = flatUnique(rules, "acceptStates");
     const transitionsFound = flatUnique(rules, "transitionsFound");
 
     applyRegex(transitions, statesFound);
@@ -263,6 +268,7 @@ function mergeRules(rules) {
         initial,
         transitions,
         transitionsFound,
+        acceptStates,
     }
 }
 
