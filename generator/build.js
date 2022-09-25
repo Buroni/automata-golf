@@ -42,10 +42,6 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
      *  NOTE: All code used in methods on the `machine` object should originate from the object, so that the
      *        object can be serialized correctly. E.g. `require` or using a resource defined elsewhere in this file
      */
-    if (typeof strictTransitions === "undefined") {
-        strictTransitions = true;
-    }
-
     const unpackedRules = parser.parse(src);
     const { initial, transitions, transitionsFound, acceptStates } = unpackedRules;
     const ret = {};
@@ -108,19 +104,8 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
             return this;
         },
 
-        stackIsInitial: function({ reset } = {reset: false}) {
-            /**
-             * Checks if stack is `[Z]`
-             */
-            const isInitial = this.stack.length === 1 && this.stack[0] === "Z";
-            if (reset) {
-                this.reset();
-            }
-            return isInitial;
-        },
-
         reset: function() {
-            this.stack = ["Z"];
+            this.stack = [];
             this.state = initial;
             return this;
         },
@@ -157,7 +142,6 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
         },
 
         _findCompositeKey: function(transitionName, stackValue) {
-            // TODO - simplify
             /**
              * Given a transition name e.g. `f`, finds the composite {transition},{state} transition
              * for the current stack value if it exists.
@@ -176,7 +160,6 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
         },
 
         _inAcceptState: function() {
-            // TODO - need to check if halted?
             if (this.halted) {
                 return false;
             }
