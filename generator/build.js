@@ -146,13 +146,10 @@ function build(src, { emitFile, target, name } = {}) {
 
         _stackMatch: function(t, stackValue) {
             /**
-             * If transition stack value is empty then check if stack is empty,
+             * If transition stack value is epsilon then return true
              * otherwise perform equality check.
              */
-            if (t === "_" && !stackValue) {
-                return true;
-            }
-            return t === stackValue;
+            return t === "_" || t === stackValue;
         },
 
         _findCompositeKey: function(transitionName, stackValue) {

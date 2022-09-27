@@ -1,39 +1,38 @@
 # automata-golf
 
-A domain-specific language (DSL) for creating finite-state machines and pushdown automota. 
+A domain-specific language (DSL) for creating nondeterministic finite-state machines and pushdown automota. 
 Mostly for fun.
 
 In `automata-golf`, a machine is defined by a series of path statements. 
 There's no need to explicitly define states or transitions.
 
 The example below shows a machine with an initial state `s0`, which transitions
-via `f` to and from `s1` .
+via `f` to and from the accepted state `s1` .
 
 ```
-# The following are all equivalent:
+# 1,2, and 3 are all equivalent:
 
-(s0) -f> s1 -f> s0;
+# 1
+.s0 -f> (s1) -f> s0;
 
-(s0) <f> s1;
+# 2
+.s0 <f> (s1);
 
-(s0) <f- s1;
-s1 -f> s0;
+# 3
+.s0 <f- (s1);
+s1 -f> .s0;
 ```
+
+Starting states are prefixed with `.`; Success states are wrapped in `(` `)`.
 
 ## Pattern matching
 
 Regex is supported for pattern matching
 
 ```
-(s0) -f> s1 <f- s2;
-t1 -g> s2;
+.s0 -f> s1 <f- s2;
+
 /^s[0-9]/ -g> t1;
-```
-
-The wildcard `*` is shorthand for `/.*/`
-
-```
-* -g> t1;
 ```
 
 ## Pushdown automota
@@ -42,82 +41,91 @@ The wildcard `*` is shorthand for `/.*/`
 a stack and transitions that push/pop the stack.
 
 The following transitions to `s1` via `f` when `a` is top of the stack. 
-Upon the transition, it pushes `b` and `c` to the stack.
+Upon the transition, it pushes `b` to the stack.
 
 ```
-(s0) -[f:a]b,c> s1;
+.s0 -[f:a]b> s1;
 ```
 
-Note that the stack is popped on every transition, even ones that don't use the
-stack value e.g. `s1 -f> s2`.
+## Epsilon transitions
 
-
-### Initial and empty stack
-
-Following convention, the stack initiates as `[Z]` where `Z`
-is the initial stack symbol.
-
-`_` matches the empty stack.
+Epsilon is represented by `_`. For example the following transitions to `s1`
+and pushes `$` to the stack without consuming any input or popping the stack.
 
 ```
-# The automaton terminates at the "success" state for string "aba"
-(s0) -[a:Z]a> s1;
-s1 -b> s0;
-s0 -[a:_]> success;
+.s0 -[_:_]$> (s1); 
+
+# or equivalently:
+
+.s0 -[_]$> (s1); 
 ```
 
 ## Examples
 
-### Self-driving robot
+### Odd binary numbers
 
-This self-driving robot can only go backwards and forwards, and switches direction when it detects a collision.
+The following program accepts all binary numbers ending in `1`
 
-```js
+```
+const { inline } = require("./automata-golf/index.js");
+
 const machine = inline`
-(off) <push> forward <collide> backward -push> off;
+.s0 -0> s0 -1> s0 -1> (s1);
 `;
 
-machine.subscribe((state, action, stack) => {
-    console.log(`Robot is at state ${state}`);
-});
-
-machine.consume(["push", "collide", "collide"]);
-
-// Console:
-// Robot is at state forward
-// Robot is at state backward
-// Robot is at state forward
+machine.consume("10110").inAcceptState(); // false
+machine.consume("1011").inAcceptState(); // true
 ```
 
 ### a<sup>n</sup>b<sup>n</sup>
 
-The following example matches the language a<sup>n</sup>b<sup>n</sup>
+The following accepts the format a<sup>n</sup>b<sup>n</sup>
 
-```js
-const { inline } = require("automata-golf/index.js");
+```
+const { inline } = require("./automata-golf/index.js");
 
 const machine = inline`
-(s0) -[a:a]a,a> s0 -[a:Z]Z,a> s0 -[b:a]> s1;
+.q0 -[a:_]a> q0;
+q0 -_> (q1);
+q1 -[b:a]> q1;
 `;
 
-machine.consume("aabb").stack // ['Z']
-machine.reset();
-machine.consume("aab").stack // ['Z', 'a']
-machine.reset();
-
-machine.consume("aabb").stackIsInitial({ reset: true }); // true
+console.log(machine.consume("aaabbb").inAcceptState()); // true
+console.log(machine.consume("abb").inAcceptState()); // false
 ```
 
-See below for the automaton for this example. 
+### Odd-length palindromes
 
-<img src="https://i.ibb.co/ChgHrtB/Screenshot-2022-09-22-at-23-24-32.png"/>
+The following accepts all odd-length palindromes in the language `{a, b}`
 
-> Note: Any transition used in the machine definition is valid from any state.
-If a specific transition exists but isn't defined at a given state,
-the stack is simply popped. 
-> 
->This is why we don't need to explicitly define 
-> `s0 -b> s0` and `s1 -b> s1` in the above automaton.
+```
+const { inline } = require("../index.js");
+
+const machine = inline`
+.q0 -[_]Z> q1;
+
+q1 -[a]a> q1;
+q1 -[b]b> q1;
+
+q1 -a> q2;
+q1 -b> q2;
+
+q2 -[a:a]> q2;
+q2 -[b:b]> q2;
+
+q2 -[_:Z]> (q3);
+`;
+
+console.log(machine.consume("abbba").inAcceptState()); // true
+console.log(machine.consume("abb").inAcceptState()); // false
+```
+
+Note the program can be golfed to 
+
+```
+.q0 -[_]Z> q1 -[a]a> q1 -[b]b> q1 -a> q2;
+q1 -b> q2 -[a:a]> q2 -[b:b]> q2 -[_:Z]> (q3);
+```
 
 ## Build to JS
 
@@ -130,7 +138,7 @@ build("(s0) -f> s1", { emitFile: "./machine.js" });
 
 // B.js
 const machine = require("./machine.js");
-machine.dispatch("f");
+machine.consume("f");
 ```
 
 ### Target
