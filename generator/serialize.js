@@ -33,12 +33,11 @@ function serialize(initial, transitions, transitionsFound, acceptStates, { targe
     }
     let serialized = `
 const initial = "${initial}";
-const transitionsFound = ${JSON.stringify(transitionsFound)};
 const fsm = {
     stack: [], 
     input: [],
     acceptStates: ${JSON.stringify(acceptStates)},
-    state: '${initial}',
+    state: "${initial}",
     consume: ${this.consume.toString()},
     reset: ${this.reset.toString()},
     inAcceptState: ${this.inAcceptState.toString()},
@@ -51,7 +50,7 @@ const fsm = {
     transitions: {
 `;
     for (const [name, ruleTransitions] of Object.entries(transitions)) {
-        serialized += `     '${name}': {\n`
+        serialized += `     "${name}": {\n`
         for (const transitionName in ruleTransitions) {
             const transitionSrc = [];
             for (const transition of ruleTransitions[transitionName]) {
@@ -61,7 +60,7 @@ const fsm = {
                     `{ fn: function() {\n${makeTransitionSrc(transitionName, nextState, stackVal)} } }`.replace(/\n/g, `\n                  `)
                 );
             }
-            serialized += `         '${transitionName}': [
+            serialized += `         "${transitionName}": [
             ${transitionSrc.join(", ")}],\n`;
         }
         serialized += "     },\n"
