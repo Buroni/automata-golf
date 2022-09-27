@@ -83,7 +83,7 @@ machine.consume("1011").inAcceptState(); // true
 
 The following accepts the format a<sup>n</sup>b<sup>n</sup>
 
-<img src="https://i.postimg.cc/sXqCSJ39/Screenshot-2022-09-27-at-23-40-50.png"/>
+<img width="804" alt="Screenshot 2022-09-27 at 23 40 50" src="https://user-images.githubusercontent.com/3934417/192653399-ec6f8f2f-35c0-4642-b26e-a3b1c5d0e677.png">
 
 ```js
 const { inline } = require("./automata-golf/index.js");
@@ -103,7 +103,8 @@ console.log(machine.consume("abb").inAcceptState()); // false
 
 The following accepts all odd-length palindromes in the language `{a, b}`
 
-<img src="https://i.postimg.cc/NMsmv1Tt/Screenshot-2022-09-27-at-23-59-36.png"/>
+<img width="766" alt="Screenshot 2022-09-27 at 23 59 36" src="https://user-images.githubusercontent.com/3934417/192653414-59a8a6cc-11fc-4c25-8509-d61d185487ba.png">
+
 
 ```js
 const { inline } = require("../index.js");
