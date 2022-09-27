@@ -48,20 +48,23 @@ const fsm = {
     _stackMatch: ${this._stackMatch.toString()},
     _findCompositeKey: ${this._findCompositeKey.toString()},
     _clone: ${this._clone.toString()},
-    transitions: {\n
+    transitions: {
 `;
     for (const [name, ruleTransitions] of Object.entries(transitions)) {
-        serialized += `'${name}': {\n`
+        serialized += `     '${name}': {\n`
         for (const transitionName in ruleTransitions) {
             const transitionSrc = [];
             for (const transition of ruleTransitions[transitionName]) {
                 const nextState = transition[`@@nextState_${transitionName}`];
                 const stackVal = transition[`@@stackVal_${transitionName}`];
-                transitionSrc.push(`{ fn: function() { ${makeTransitionSrc(transitionName, nextState, stackVal)} } }`);
+                transitionSrc.push(
+                    `{ fn: function() {\n${makeTransitionSrc(transitionName, nextState, stackVal)} } }`.replace(/\n/g, `\n                  `)
+                );
             }
-            serialized += `'${transitionName}': [${transitionSrc.join(", ")}],\n`;
+            serialized += `         '${transitionName}': [
+            ${transitionSrc.join(", ")}],\n`;
         }
-        serialized += "},\n"
+        serialized += "     },\n"
     }
 
     serialized += "}};"
