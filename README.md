@@ -19,8 +19,8 @@ via `f` to and from the accepted state `s1` .
 .s0 <f> (s1);
 
 # 3
-.s0 <f- (s1);
 s1 -f> .s0;
+s0 <f- (s1);
 ```
 
 Starting states are prefixed with `.`; Success states are wrapped in `(` `)`.
