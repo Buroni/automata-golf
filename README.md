@@ -90,7 +90,6 @@ const { inline } = require("./automata-golf/index.js");
 
 const machine = inline`
 .q0 -[a,_]a> q0;
-.q0 -[a,_]a> q0;
 q0 -_> (q1);
 q1 -[b,a]> q1;
 `;
