@@ -101,16 +101,18 @@ function TransitionBuilder() {
     this.transitions = {};
 
     this._getTransitionFunction = function(transition, nextState) {
-        if (transition.stackVal) {
-            return function () {
-                this.state = nextState.name;
-                this.stack.push(...transition.stackVal.split(","));
-            };
-        } else {
-            return function () {
-                this.state = nextState.name;
-            };
+        const [transitionName, stackTransition] = transition.name.split(",");
+        let fnStr = `this.state = '${nextState.name}';\n`;
+        if (transitionName !== "_") {
+            fnStr += "this.input.shift();\n";
         }
+        if (stackTransition) {
+            fnStr += "this.stack.pop();\n"
+        }
+        if (transition.stackVal) {
+            fnStr += `this.stack.push(...${JSON.stringify(transition.stackVal.split(","))});`;
+        }
+        return new Function(fnStr);
     }
 
     this.addTransition = function (state, transition, nextState) {

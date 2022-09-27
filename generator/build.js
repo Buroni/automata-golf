@@ -58,6 +58,7 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
             if (typeof input === "string") {
                 input = input.split("");
             }
+            this.input = input;
             return this._consume(...input);
         },
 
@@ -66,39 +67,58 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
              * Dispatches each token in an iterable `states` value
              */
 
-            this.input.shift();
-
-            if (!head) {
-                return this;
-            }
-
-            const stackValue = this.stack.pop();
+            const stackValue = this.stack[this.stack.length - 1];
             const compositeKey = this._findCompositeKey(head, stackValue);
             const epsilonCompositeKey = this._findCompositeKey("_", stackValue);
             const stateTransitions = this.transitions[this.state];
 
+             if (!head && this._inAcceptState()) {
+                return this;
+            }
+
             if (!stateTransitions || !(stateTransitions[compositeKey] || stateTransitions[epsilonCompositeKey])) {
-                this.halted = true;
+                if (head) this.halted = true;
                 return this;
             }
             this.halted = false;
 
             const actions = []
                 .concat(stateTransitions[compositeKey] || [])
-                .concat(stateTransitions[epsilonCompositeKey] || []);
+                .concat((stateTransitions[epsilonCompositeKey] || []).map(a => ({...a, epsilon: true})));
 
             if (actions.length === 1) {
                 actions[0].fn.call(this);
-                this._consume(...tail);
+
+                //// head goes regardless of whether epsilon transition
+                if (actions[0].epsilon) {
+                    this._consume(head, ...tail);
+                } else {
+                    this._consume(...tail);
+                }
+                ////
             } else {
-                const snapshot = this._clone();
+                let exhausted;
                 for (const action of actions) {
+                    const snapshot = this._clone();
                     action.fn.call(snapshot);
-                    snapshot._consume(...tail);
-                    if (snapshot._inAcceptState()) {
+
+                    ////
+                    if (actions[0].epsilon) {
+                        snapshot._consume(head, ...tail);
+                    } else {
+                        snapshot._consume(...tail);
+                    }
+                    ////
+
+                    if (snapshot.acceptStates.includes(snapshot.state) && snapshot.input.length === 0) {
                         Object.assign(this, snapshot);
                         break;
+                    } else if (snapshot.input.length === 0 && snapshot.stack.length === 0) {
+                        exhausted = {...snapshot};
                     }
+                }
+                if (!this._inAcceptState()) {
+                    // Object.assign(this, exhausted);
                 }
             }
             return this;
@@ -164,13 +184,18 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
                 return false;
             }
             const { input, stack, state } = this;
-            return !input.length && (!stack.length || this.acceptStates.includes(state));
+            return !input.length && this.acceptStates.includes(state);
+        },
+
+        _exhausted: function() {
+            return !this.input.length && !this.stack.length;
         },
 
         _clone: function() {
             return {
                 ...this,
                 stack: [...this.stack],
+                input: [...this.input],
                 state: this.state,
                 emitter: null,
                 halted: false,
