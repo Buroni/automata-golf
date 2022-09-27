@@ -59,68 +59,32 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
                 input = input.split("");
             }
             this.input = input;
-            return this._consume(...input);
-        },
 
-        _consume: function(head, ...tail) {
-            /**
-             * Dispatches each token in an iterable `states` value
-             */
+            const snapshotStack = [this._clone()];
+            let exhaustedSnapshot = snapshotStack[0];
 
-            const stackValue = this.stack[this.stack.length - 1];
-            const compositeKey = this._findCompositeKey(head, stackValue);
-            const epsilonCompositeKey = this._findCompositeKey("_", stackValue);
-            const stateTransitions = this.transitions[this.state];
+            while (snapshotStack.length) {
+                const snapshot = snapshotStack.pop();
+                const possibleTransitions = snapshot._getPossibleTransitions();
 
-             if (!head && this._inAcceptState()) {
-                return this;
-            }
+                if (possibleTransitions.length === 1) {
 
-            if (!stateTransitions || !(stateTransitions[compositeKey] || stateTransitions[epsilonCompositeKey])) {
-                if (head) this.halted = true;
-                return this;
-            }
-            this.halted = false;
+                    if (this._evaluateSnapshot(snapshot, possibleTransitions[0])) return this;
+                    exhaustedSnapshot = this._mostExhausted(snapshot, exhaustedSnapshot);
+                    snapshotStack.push(snapshot._clone());
 
-            const actions = []
-                .concat(stateTransitions[compositeKey] || [])
-                .concat((stateTransitions[epsilonCompositeKey] || []).map(a => ({...a, epsilon: true})));
+                } else if (possibleTransitions.length > 1) {
 
-            if (actions.length === 1) {
-                actions[0].fn.call(this);
-
-                //// head goes regardless of whether epsilon transition
-                if (actions[0].epsilon) {
-                    this._consume(head, ...tail);
-                } else {
-                    this._consume(...tail);
-                }
-                ////
-            } else {
-                let exhausted;
-                for (const action of actions) {
-                    const snapshot = this._clone();
-                    action.fn.call(snapshot);
-
-                    ////
-                    if (actions[0].epsilon) {
-                        snapshot._consume(head, ...tail);
-                    } else {
-                        snapshot._consume(...tail);
+                    for (const possibleTransition of possibleTransitions) {
+                        const snapshotCopy = snapshot._clone();
+                        if (this._evaluateSnapshot(snapshotCopy, possibleTransition)) return this;
+                        exhaustedSnapshot = this._mostExhausted(snapshotCopy, exhaustedSnapshot);
+                        snapshotStack.push(snapshotCopy);
                     }
-                    ////
 
-                    if (snapshot.acceptStates.includes(snapshot.state) && snapshot.input.length === 0) {
-                        Object.assign(this, snapshot);
-                        break;
-                    } else if (snapshot.input.length === 0 && snapshot.stack.length === 0) {
-                        exhausted = {...snapshot};
-                    }
-                }
-                if (!this._inAcceptState()) {
-                    // Object.assign(this, exhausted);
                 }
             }
+            Object.assign(this, exhaustedSnapshot);
             return this;
         },
 
@@ -130,8 +94,35 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
             return this;
         },
 
-        subscribe: function(cb) {
-            this.emitter.on("transition", (state, action, stackTop) => cb(state, action, stackTop));
+        _mostExhausted: function(s1, s2) {
+            return s1.stack.length + s1.input.length <= s2.stack.length + s2.input.length ? s1 : s2;
+        },
+
+        _evaluateSnapshot: function(snapshot, transition) {
+            transition.fn.call(snapshot);
+
+            if (snapshot.inAcceptState()) {
+                Object.assign(this, snapshot);
+                return true;
+            }
+            return false;
+        },
+
+        _getPossibleTransitions: function() {
+            const stackValue = this.stack[this.stack.length - 1];
+            const inputValue = this.input[this.input.length - 1];
+            const stateTransitions = this.transitions[this.state];
+
+            if (!stateTransitions) {
+                return [];
+            }
+
+            const compositeKey = this._findCompositeKey(inputValue, stackValue);
+            const epsilonCompositeKey = this._findCompositeKey("_", stackValue);
+
+            return []
+                .concat(stateTransitions[compositeKey] || [])
+                .concat((stateTransitions[epsilonCompositeKey] || []));
         },
 
         _serialize: function(f, { target, name } = { target: "node" }) {
@@ -179,16 +170,12 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
             }
         },
 
-        _inAcceptState: function() {
+        inAcceptState: function() {
             if (this.halted) {
                 return false;
             }
-            const { input, stack, state } = this;
+            const { input, state } = this;
             return !input.length && this.acceptStates.includes(state);
-        },
-
-        _exhausted: function() {
-            return !this.input.length && !this.stack.length;
         },
 
         _clone: function() {
@@ -198,7 +185,6 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
                 input: [...this.input],
                 state: this.state,
                 emitter: null,
-                halted: false,
             };
         }
     };
