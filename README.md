@@ -66,7 +66,7 @@ and pushes `$` to the stack without consuming any input or popping the stack.
 
 The following program accepts all binary numbers ending in `1`
 
-```
+```js
 const { inline } = require("./automata-golf/index.js");
 
 const machine = inline`
@@ -81,7 +81,7 @@ machine.consume("1011").inAcceptState(); // true
 
 The following accepts the format a<sup>n</sup>b<sup>n</sup>
 
-```
+```js
 const { inline } = require("./automata-golf/index.js");
 
 const machine = inline`
@@ -98,7 +98,7 @@ console.log(machine.consume("abb").inAcceptState()); // false
 
 The following accepts all odd-length palindromes in the language `{a, b}`
 
-```
+```js
 const { inline } = require("../index.js");
 
 const machine = inline`
