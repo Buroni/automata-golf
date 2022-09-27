@@ -94,8 +94,8 @@ q0 -_> (q1);
 q1 -[b,a]> q1;
 `;
 
-console.log(machine.consume("aaabbb").inAcceptState()); // true
-console.log(machine.consume("abb").inAcceptState()); // false
+machine.consume("aaabbb").inAcceptState(); // true
+machine.consume("abb").inAcceptState(); // false
 ```
 
 ### Odd-length palindromes
