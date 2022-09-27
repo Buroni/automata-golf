@@ -65,10 +65,10 @@ transition
     | "-" pda_definition ">" -> { direction: "r", ...$2 }
     ;
 pda_definition
-    : "[" IDENT ":" IDENT "]" IDENT -> { name: $4 === "_" ? `${$2},` : `${$2},${$4}`, stackVal: $6}
-    | "[" IDENT "]" IDENT -> { name: `${$2},`, stackVal: $4 }
-    | IDENT "[" IDENT ":" IDENT "]" -> { name: $5 === "_" ? `${$3},` : `${$3},${$5}`, stackVal: $1}
-    | IDENT "[" IDENT "]" -> { name: `${$3},`, stackVal: $1 }
+    : "[" IDENT ":" IDENT "]" IDENT -> { name: $4 === "_" ? `${$2},` : `${$2},${$4}`, stackVal: $6 === "_" ? undefined : $6 }
+    | "[" IDENT "]" IDENT -> { name: `${$2},`, stackVal: $4 === "_" ? undefined : $4 }
+    | IDENT "[" IDENT ":" IDENT "]" -> { name: $5 === "_" ? `${$3},` : `${$3},${$5}`, stackVal: $1 === "_" ? undefined : $1}
+    | IDENT "[" IDENT "]" -> { name: `${$3},`, stackVal: $1 === "_" ? undefined : $1 }
     | "[" IDENT "]" -> { name: `${$2},` }
     | "[" IDENT ":" IDENT "]" -> { name: $4 === "_" ? `${$2},` : `${$2},${$4}` }
     ;

@@ -60,6 +60,8 @@ and pushes `$` to the stack without consuming any input or popping the stack.
 .s0 -[_]$> (s1); 
 ```
 
+> Epsilons can usually be omitted, for example `-f>` is short for `-[f:_]_>`.
+
 ## Examples
 
 ### Odd binary numbers
@@ -81,10 +83,13 @@ machine.consume("1011").inAcceptState(); // true
 
 The following accepts the format a<sup>n</sup>b<sup>n</sup>
 
+<img src="https://i.postimg.cc/sXqCSJ39/Screenshot-2022-09-27-at-23-40-50.png"/>
+
 ```js
 const { inline } = require("./automata-golf/index.js");
 
 const machine = inline`
+.q0 -[a:_]a> q0;
 .q0 -[a:_]a> q0;
 q0 -_> (q1);
 q1 -[b:a]> q1;
@@ -98,11 +103,13 @@ console.log(machine.consume("abb").inAcceptState()); // false
 
 The following accepts all odd-length palindromes in the language `{a, b}`
 
+<img src="https://i.postimg.cc/NMsmv1Tt/Screenshot-2022-09-27-at-23-59-36.png"/>
+
 ```js
 const { inline } = require("../index.js");
 
 const machine = inline`
-.q0 -[_]Z> q1;
+.q0 -[_]$> q1;
 
 q1 -[a]a> q1;
 q1 -[b]b> q1;
@@ -113,7 +120,7 @@ q1 -b> q2;
 q2 -[a:a]> q2;
 q2 -[b:b]> q2;
 
-q2 -[_:Z]> (q3);
+q2 -[_:$]> (q3);
 `;
 
 console.log(machine.consume("abbba").inAcceptState()); // true
