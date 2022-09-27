@@ -47,7 +47,7 @@ Upon the transition, it pushes `b` to the stack.
 .s0 -[f:a]b> s1;
 ```
 
-## Epsilon transitions
+### Epsilon transitions
 
 Epsilon is represented by `_`. For example the following transitions to `s1`
 and pushes `$` to the stack without consuming any input or popping the stack.
