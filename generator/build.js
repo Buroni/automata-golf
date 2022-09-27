@@ -3,7 +3,6 @@ const { serialize } = require("../generator/serialize.js");
 const { BuildError } = require("../utils.js");
 const { isMetaProperty } = require("../utils");
 const fs = require("fs");
-const { EventEmitter } = require("events");
 
 function filterMetaProperties(machine) {
     /**
@@ -23,7 +22,7 @@ function filterMetaProperties(machine) {
     return machine;
 }
 
-function build(src, { emitFile, target, name, strictTransitions } = {}) {
+function build(src, { emitFile, target, name } = {}) {
     /**
      * Parses the given source and generates a machine.
      *
@@ -42,6 +41,11 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
      *  NOTE: All code used in methods on the `machine` object should originate from the object, so that the
      *        object can be serialized correctly. E.g. `require` or using a resource defined elsewhere in this file
      */
+
+    if (!target) {
+        target = "node";
+    }
+
     const unpackedRules = parser.parse(src);
     const { initial, transitions, transitionsFound, acceptStates } = unpackedRules;
     const ret = {};
@@ -50,7 +54,6 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
         stack: [],
         state: initial,
         input: [],
-        emitter: new EventEmitter(),
         transitions,
         acceptStates,
 
@@ -110,7 +113,7 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
 
         _getPossibleTransitions: function() {
             const stackValue = this.stack[this.stack.length - 1];
-            const inputValue = this.input[this.input.length - 1];
+            const inputValue = this.input[0];
             const stateTransitions = this.transitions[this.state];
 
             if (!stateTransitions) {
@@ -130,7 +133,7 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
              * Converts the object instance to a string for writing to file.
              * Note this property is removed in the public `machine` object.
              */
-            const serialized = serialize.call(this, initial, transitions, transitionsFound, { target, name });
+            const serialized = serialize.call(this, initial, transitions, transitionsFound, acceptStates, { target, name });
             if (f) {
                 fs.writeFile(f, serialized, (err) => {
                     if (err) {
@@ -171,9 +174,6 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
         },
 
         inAcceptState: function() {
-            if (this.halted) {
-                return false;
-            }
             const { input, state } = this;
             return !input.length && this.acceptStates.includes(state);
         },
@@ -184,7 +184,6 @@ function build(src, { emitFile, target, name, strictTransitions } = {}) {
                 stack: [...this.stack],
                 input: [...this.input],
                 state: this.state,
-                emitter: null,
             };
         }
     };

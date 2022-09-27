@@ -44,6 +44,7 @@
  */
 
 const { ParseError, isMetaProperty } = require("../utils.js");
+const { makeTransitionFunction } = require("../generator/serialize.js");
 
 function mergeRuleToTarget(rule, state, target) {
     /**
@@ -100,23 +101,8 @@ function TransitionBuilder() {
      */
     this.transitions = {};
 
-    this._getTransitionFunction = function(transition, nextState) {
-        const [transitionName, stackTransition] = transition.name.split(",");
-        let fnStr = `this.state = '${nextState.name}';\n`;
-        if (transitionName !== "_") {
-            fnStr += "this.input.shift();\n";
-        }
-        if (stackTransition) {
-            fnStr += "this.stack.pop();\n"
-        }
-        if (transition.stackVal) {
-            fnStr += `this.stack.push(...${JSON.stringify(transition.stackVal.split(","))});`;
-        }
-        return new Function(fnStr);
-    }
-
     this.addTransition = function (state, transition, nextState) {
-        const fn = this._getTransitionFunction(transition, nextState);
+        const fn = makeTransitionFunction(transition.name, nextState.name, transition.stackVal);
         const { name } = state;
 
         const transitionObj = {

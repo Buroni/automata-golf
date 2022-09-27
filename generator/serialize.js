@@ -6,92 +6,67 @@
 
 const { isMetaProperty } = require("../utils");
 
-function EventEmitter() {
-    /**
-     * Polyfill for node `EventEmitter`
-     * Note: should only be run in a browser, as `CustomEvent`
-     * isn't available in node < 18
-     */
-    this.emit = function(evtName, ...detail) {
-        const evt = new CustomEvent("transition", { detail });
-        self.dispatchEvent(evt);
-    }
-
-    this.on = function(evtName, cb) {
-        self.addEventListener(evtName, evt => cb(...evt.detail));
-    }
-}
-
-function impureTransitionSrc(transitionName, nextState, stackVal) {
-    /**
-     * Transition source code with stack push,
-     * e.g. `s1 -[f]a> s2`
-     */
-    return `'${transitionName}': 
-        function() { 
-            this.state = '${nextState}'; 
-            this.stack.push(${stackVal.split(",").map(el => `'${el}'`).join(",")});
-         }`
-}
-
-function pureTransitionSrc(transitionName, nextState) {
-    /**
-     * Transition source code without stack push,
-     * e.g. `s1 -f> s2`
-     */
-    return `'${transitionName}': 
-        function() { 
-            this.state = '${nextState}'; 
-        }`;
-}
 
 function makeTransitionSrc(transitionName, nextState, stackVal) {
-    return stackVal
-        ? impureTransitionSrc(transitionName, nextState, stackVal)
-        : pureTransitionSrc(transitionName, nextState);
-
+    const [transitionAction, stackTransition] = transitionName.split(",");
+    let fnStr = `this.state = '${nextState}';\n`;
+    if (transitionAction !== "_") {
+        fnStr += "this.input.shift();\n";
+    }
+    if (stackTransition) {
+        fnStr += "this.stack.pop();\n"
+    }
+    if (stackVal) {
+        fnStr += `this.stack.push(...${JSON.stringify(stackVal.split(","))});`;
+    }
+    return fnStr;
 }
 
-function serialize(initial, transitions, transitionsFound, { target, name } = { target: "node" }) {
+function makeTransitionFunction(transitionName, nextState, stackVal) {
+    const fnStr = makeTransitionSrc(transitionName, nextState, stackVal)
+    return new Function(fnStr);
+}
+
+function serialize(initial, transitions, transitionsFound, acceptStates, { target, name } = { target: "node" }) {
     if (target === "browser" && !name) {
         throw new Error("`name` property must be defined when `target` property is 'browser'");
     }
     let serialized = `
-function BuildError(msg) {
-    throw \`FSM build error: \${msg}\`;
-}
-BuildError.prototype = Error.prototype;
-
-${target === "node" ? "" : EventEmitter.toString()}
-
 const initial = "${initial}";
 const transitionsFound = ${JSON.stringify(transitionsFound)};
 const fsm = {
-    stack: ['Z'], 
-    state: ['${initial}'],
-    emitter: new EventEmitter(),
+    stack: [], 
+    input: [],
+    acceptStates: ${JSON.stringify(acceptStates)},
+    state: '${initial}',
     consume: ${this.consume.toString()},
-    dispatch: ${this.dispatch.toString()},
     reset: ${this.reset.toString()},
-    subscribe: ${this.subscribe.toString()},
-    stackIsInitial: ${this.stackIsInitial.toString()},
-    transitions: {
+    inAcceptState: ${this.inAcceptState.toString()},
+    _mostExhausted: ${this._mostExhausted.toString()},
+    _evaluateSnapshot: ${this._evaluateSnapshot.toString()},
+    _getPossibleTransitions: ${this._getPossibleTransitions.toString()},
+    _stackMatch: ${this._stackMatch.toString()},
+    _findCompositeKey: ${this._findCompositeKey.toString()},
+    _clone: ${this._clone.toString()},
+    transitions: {\n
 `;
     for (const [name, ruleTransitions] of Object.entries(transitions)) {
-        const transitionSrc = [];
-        for (const key in ruleTransitions) {
-            if (!isMetaProperty(key)) {
-                const nextState = ruleTransitions[`@@nextState_${key}`];
-                const stackVal = ruleTransitions[`@@stackVal_${key}`];
-                transitionSrc.push(makeTransitionSrc(key, nextState, stackVal));
+        serialized += `'${name}': {\n`
+        for (const transitionName in ruleTransitions) {
+            const transitionSrc = [];
+            for (const transition of ruleTransitions[transitionName]) {
+                const nextState = transition[`@@nextState_${transitionName}`];
+                const stackVal = transition[`@@stackVal_${transitionName}`];
+                transitionSrc.push(`{ fn: function() { ${makeTransitionSrc(transitionName, nextState, stackVal)} } }`);
             }
+            serialized += `'${transitionName}': [${transitionSrc.join(", ")}],\n`;
         }
-        serialized += `${name}: { ${transitionSrc.join(", ")} },\n`;
+        serialized += "},\n"
     }
 
-    serialized += "}\n};"
+    serialized += "}};"
     serialized += target === "node" ? "\nmodule.exports = fsm;\n" : `\nwindow.${name} = fsm;\n`;
 
     return serialized;
 }
-module.exports = { serialize };
+module.exports = { serialize, makeTransitionFunction };
