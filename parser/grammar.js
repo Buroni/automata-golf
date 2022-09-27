@@ -75,8 +75,8 @@ var grammar = (function(){
 var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[1,4],$V1=[1,8],$V2=[1,10],$V3=[1,9],$V4=[1,11],$V5=[1,12],$V6=[1,6,11,12,14,15,16],$V7=[11,12,14,15,16],$V8=[1,17],$V9=[1,18],$Va=[6,17,19],$Vb=[1,25],$Vc=[1,32],$Vd=[18,19];
 var parser = {trace: function trace () { },
 yy: {},
-symbols_: {"error":2,"start":3,"rules":4,"rule":5,"LINE_END":6,"rule_transitions":7,"state":8,"rule_transition":9,"transition":10,"(":11,"IDENT":12,")":13,".":14,"*":15,"REGEX":16,"<":17,">":18,"-":19,"pda_definition":20,"[":21,":":22,"]":23,"$accept":0,"$end":1},
-terminals_: {2:"error",6:"LINE_END",11:"(",12:"IDENT",13:")",14:".",15:"*",16:"REGEX",17:"<",18:">",19:"-",21:"[",22:":",23:"]"},
+symbols_: {"error":2,"start":3,"rules":4,"rule":5,"LINE_END":6,"rule_transitions":7,"state":8,"rule_transition":9,"transition":10,"(":11,"IDENT":12,")":13,".":14,"*":15,"REGEX":16,"<":17,">":18,"-":19,"pda_definition":20,"[":21,",":22,"]":23,"$accept":0,"$end":1},
+terminals_: {2:"error",6:"LINE_END",11:"(",12:"IDENT",13:")",14:".",15:"*",16:"REGEX",17:"<",18:">",19:"-",21:"[",22:",",23:"]"},
 productions_: [0,[3,1],[4,2],[4,1],[5,1],[5,3],[7,2],[7,1],[9,2],[8,3],[8,4],[8,2],[8,1],[8,1],[8,1],[10,3],[10,3],[10,3],[10,3],[10,3],[10,3],[20,6],[20,4],[20,6],[20,4],[20,3],[20,5]],
 performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate /* action[1] */, $$ /* vstack */, _$ /* lstack */) {
 /* this == yyval */
@@ -123,13 +123,13 @@ case 14:
 this.$ = { type: "state", name: `@@regexp:${$$[$0].slice(1, -1)}` };
 break;
 case 15:
-this.$ = { direction: "lr", name: `${$$[$0-1]},` };
+this.$ = { direction: "lr", name: `${$$[$0-1]}:` };
 break;
 case 16:
-this.$ = { direction: "l", name: `${$$[$0-1]},` };
+this.$ = { direction: "l", name: `${$$[$0-1]}:` };
 break;
 case 17:
-this.$ = { direction: "r", name: `${$$[$0-1]},` };
+this.$ = { direction: "r", name: `${$$[$0-1]}:` };
 break;
 case 18:
 this.$ = { direction: "lr", ...$$[$0-1] };
@@ -141,22 +141,22 @@ case 20:
 this.$ = { direction: "r", ...$$[$0-1] };
 break;
 case 21:
-this.$ = { name: $$[$0-2] === "_" ? `${$$[$0-4]},` : `${$$[$0-4]},${$$[$0-2]}`, stackVal: $$[$0] === "_" ? undefined : $$[$0] };
+this.$ = { name: $$[$0-2] === "_" ? `${$$[$0-4]}:` : `${$$[$0-4]}:${$$[$0-2]}`, stackVal: $$[$0] === "_" ? undefined : $$[$0] };
 break;
 case 22:
-this.$ = { name: `${$$[$0-2]},`, stackVal: $$[$0] === "_" ? undefined : $$[$0] };
+this.$ = { name: `${$$[$0-2]}:`, stackVal: $$[$0] === "_" ? undefined : $$[$0] };
 break;
 case 23:
-this.$ = { name: $$[$0-1] === "_" ? `${$$[$0-3]},` : `${$$[$0-3]},${$$[$0-1]}`, stackVal: $$[$0-5] === "_" ? undefined : $$[$0-5]};
+this.$ = { name: $$[$0-1] === "_" ? `${$$[$0-3]}:` : `${$$[$0-3]}:${$$[$0-1]}`, stackVal: $$[$0-5] === "_" ? undefined : $$[$0-5]};
 break;
 case 24:
-this.$ = { name: `${$$[$0-1]},`, stackVal: $$[$0-3] === "_" ? undefined : $$[$0-3] };
+this.$ = { name: `${$$[$0-1]}:`, stackVal: $$[$0-3] === "_" ? undefined : $$[$0-3] };
 break;
 case 25:
-this.$ = { name: `${$$[$0-1]},` };
+this.$ = { name: `${$$[$0-1]}:` };
 break;
 case 26:
-this.$ = { name: $$[$0-1] === "_" ? `${$$[$0-3]},` : `${$$[$0-3]},${$$[$0-1]}` };
+this.$ = { name: $$[$0-1] === "_" ? `${$$[$0-3]}:` : `${$$[$0-3]}:${$$[$0-1]}` };
 break;
 }
 },
@@ -664,7 +664,7 @@ case 10:return "]";
 break;
 case 11:return ",";
 break;
-case 12:return ":";
+case 12:return ",";
 break;
 case 13:return ".";
 break;
@@ -674,7 +674,7 @@ case 15:return "IDENT";
 break;
 }
 },
-rules: [/^(?:\s*#[^\n\r]*)/,/^(?:\s+)/,/^(?:;)/,/^(?:\()/,/^(?:\))/,/^(?:>)/,/^(?:<)/,/^(?:-)/,/^(?:\*)/,/^(?:\[)/,/^(?:\])/,/^(?:,)/,/^(?::)/,/^(?:\.)/,/^(?:\/[^\/]*\/)/,/^(?:[A-Za-z0-9_$,]+)/],
+rules: [/^(?:\s*#[^\n\r]*)/,/^(?:\s+)/,/^(?:;)/,/^(?:\()/,/^(?:\))/,/^(?:>)/,/^(?:<)/,/^(?:-)/,/^(?:\*)/,/^(?:\[)/,/^(?:\])/,/^(?:,)/,/^(?:,)/,/^(?:\.)/,/^(?:\/[^\/]*\/)/,/^(?:[A-Za-z0-9_$:]+)/],
 conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"inclusive":true}}
 });
 return lexer;

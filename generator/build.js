@@ -161,8 +161,8 @@ function build(src, { emitFile, target, name } = {}) {
              * then the method matches and returns transition `f,a`.
              */
             for (const key in this.transitions[this.state]) {
-                if (key.startsWith(`${transitionName},`)) {
-                    const [, stackTransition] = key.split(",");
+                if (key.startsWith(`${transitionName}:`)) {
+                    const [, stackTransition] = key.split(":");
                     if (!stackTransition || this._stackMatch(stackTransition, stackValue)) {
                         return key;
                     }

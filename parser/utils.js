@@ -153,7 +153,7 @@ function unpackRuleStmt(ruleArr) {
 
             pushFound(statesFound, state.name);
             pushFound(statesFound, nextState.name);
-            pushFound(transitionsFound, transition.name.split(",")[0]);
+            pushFound(transitionsFound, transition.name.split(":")[0]);
 
             state.accept && pushFound(acceptStates, state.name);
             nextState.accept && pushFound(acceptStates, nextState.name);
