@@ -56,8 +56,7 @@ function mergeRuleToTarget(rule, state, target) {
         }
         if (Array.isArray(rule[state][transitionName]))
             target[state][transitionName].push(...rule[state][transitionName]);
-        else
-            target[state][transitionName].push(rule[state][transitionName]);
+        else target[state][transitionName].push(rule[state][transitionName]);
     }
 }
 
@@ -102,7 +101,11 @@ function TransitionBuilder() {
     this.transitions = {};
 
     this.addTransition = function (state, transition, nextState) {
-        const fn = makeTransitionFunction(transition.name, nextState.name, transition.stackVal);
+        const fn = makeTransitionFunction(
+            transition.name,
+            nextState.name,
+            transition.stackVal
+        );
         const { name } = state;
 
         const transitionObj = {
@@ -113,7 +116,8 @@ function TransitionBuilder() {
         };
 
         if (transition.stackVal) {
-            transitionObj[`@@stackVal_${transition.name}`] = transition.stackVal;
+            transitionObj[`@@stackVal_${transition.name}`] =
+                transition.stackVal;
         }
 
         if (!this.transitions[name]) {
@@ -125,7 +129,7 @@ function TransitionBuilder() {
         }
 
         this.transitions[name][transition.name].push(transitionObj);
-    }
+    };
 }
 
 function unpackRuleStmt(ruleArr) {
@@ -175,7 +179,7 @@ function unpackRuleStmt(ruleArr) {
         }
     });
 
-    const initialState = ruleArr.find(r => r.initial);
+    const initialState = ruleArr.find((r) => r.initial);
 
     return {
         initial: initialState?.name || false,
@@ -200,7 +204,9 @@ function addRegexToTransitions(transitions, statesFound, regexp, regexState) {
                 if (!transitions[state][transitionName]) {
                     transitions[state][transitionName] = [];
                 }
-                transitions[state][transitionName].push(...regexState[transitionName]);
+                transitions[state][transitionName].push(
+                    ...regexState[transitionName]
+                );
             }
         }
     }
@@ -220,7 +226,7 @@ function applyRegex(transitions, statesFound) {
      * s2 -foo> bar;
      */
     for (const state in transitions) {
-        const [, regex] = state.split("@@regexp:")
+        const [, regex] = state.split("@@regexp:");
         if (!regex) {
             continue;
         }
@@ -236,15 +242,20 @@ function mergeRules(rules) {
     /**
      * Merges array of processed rule objects into a single object
      */
-    const flatUnique = (arr, prop) => [...new Set(arr.map(r => r[prop]).flat())];
-    const transitions = mergeTransitions({}, ...rules.map(r => r.transitions));
+    const flatUnique = (arr, prop) => [
+        ...new Set(arr.map((r) => r[prop]).flat()),
+    ];
+    const transitions = mergeTransitions(
+        {},
+        ...rules.map((r) => r.transitions)
+    );
     const statesFound = flatUnique(rules, "statesFound");
     const acceptStates = flatUnique(rules, "acceptStates");
     const transitionsFound = flatUnique(rules, "transitionsFound");
 
     applyRegex(transitions, statesFound);
 
-    const initial = rules.find(r => r.initial)?.initial;
+    const initial = rules.find((r) => r.initial)?.initial;
     if (!initial) {
         throw new ParseError(
             "Initial state not found; set initial state by wrapping in parenthesis, e.g. `(s0) -f> s1`"
@@ -256,7 +267,7 @@ function mergeRules(rules) {
         transitions,
         transitionsFound,
         acceptStates,
-    }
+    };
 }
 
 module.exports = { unpackRuleStmt, mergeRules };

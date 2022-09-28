@@ -1,16 +1,18 @@
 {
-  "name": "fsm",
-  "version": "1.0.0",
-  "description": "",
-  "main": "fsm.js",
-  "scripts": {
-    "parse": "jison ./parser/grammar.jison -o ./parser/grammar.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "jison": "^0.4.18"
-  }
+    "name": "fsm",
+    "version": "1.0.0",
+    "description": "",
+    "main": "fsm.js",
+    "scripts": {
+        "parse": "jison ./parser/grammar.jison -o ./parser/grammar.js",
+        "prettier": "prettier --write .",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "jison": "^0.4.18",
+        "prettier": "2.7.1"
+    }
 }

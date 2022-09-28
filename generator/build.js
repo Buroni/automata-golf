@@ -47,7 +47,8 @@ function build(src, { emitFile, target, name } = {}) {
     }
 
     const unpackedRules = parser.parse(src);
-    const { initial, transitions, transitionsFound, acceptStates } = unpackedRules;
+    const { initial, transitions, transitionsFound, acceptStates } =
+        unpackedRules;
     const ret = {};
 
     const machine = {
@@ -57,7 +58,7 @@ function build(src, { emitFile, target, name } = {}) {
         transitions,
         acceptStates,
 
-        consume: function(input) {
+        consume: function (input) {
             /**
              * Iterate through every possible path in the machine until either an accepted state is found with an empty input,
              * or all possible paths are exhausted.
@@ -75,22 +76,34 @@ function build(src, { emitFile, target, name } = {}) {
                 const possibleTransitions = snapshot._getPossibleTransitions();
 
                 if (possibleTransitions.length === 1) {
-
-                    if (this._evaluateSnapshot(snapshot, possibleTransitions[0])) return this;
-                    exhaustedSnapshot = this._mostExhausted(snapshot, exhaustedSnapshot);
+                    if (
+                        this._evaluateSnapshot(snapshot, possibleTransitions[0])
+                    )
+                        return this;
+                    exhaustedSnapshot = this._mostExhausted(
+                        snapshot,
+                        exhaustedSnapshot
+                    );
                     snapshotStack.push(snapshot._clone());
-
                 } else if (possibleTransitions.length > 1) {
                     // If there are multiple possible paths from the current state,
                     // evaluate the snapshot at each path and merge into current state if one is accepted.
                     // otherwise push the transitioned snapshot onto the stack.
                     for (const possibleTransition of possibleTransitions) {
                         const snapshotCopy = snapshot._clone();
-                        if (this._evaluateSnapshot(snapshotCopy, possibleTransition)) return this;
-                        exhaustedSnapshot = this._mostExhausted(snapshotCopy, exhaustedSnapshot);
+                        if (
+                            this._evaluateSnapshot(
+                                snapshotCopy,
+                                possibleTransition
+                            )
+                        )
+                            return this;
+                        exhaustedSnapshot = this._mostExhausted(
+                            snapshotCopy,
+                            exhaustedSnapshot
+                        );
                         snapshotStack.push(snapshotCopy);
                     }
-
                 }
             }
             // In the case that no accepted state is found with an empty input,
@@ -99,17 +112,20 @@ function build(src, { emitFile, target, name } = {}) {
             return this;
         },
 
-        reset: function() {
+        reset: function () {
             this.stack = [];
             this.state = initial;
             return this;
         },
 
-        _mostExhausted: function(s1, s2) {
-            return s1.stack.length + s1.input.length <= s2.stack.length + s2.input.length ? s1 : s2;
+        _mostExhausted: function (s1, s2) {
+            return s1.stack.length + s1.input.length <=
+                s2.stack.length + s2.input.length
+                ? s1
+                : s2;
         },
 
-        _evaluateSnapshot: function(snapshot, transition) {
+        _evaluateSnapshot: function (snapshot, transition) {
             /**
              * Perform the transition on given snapshot and merge
              * into the current object if it's in an accept state
@@ -123,7 +139,7 @@ function build(src, { emitFile, target, name } = {}) {
             return false;
         },
 
-        _getPossibleTransitions: function() {
+        _getPossibleTransitions: function () {
             /**
              * Get all possible transitions (including epsilon transitions)
              * given the current state, stack and input
@@ -141,15 +157,22 @@ function build(src, { emitFile, target, name } = {}) {
 
             return []
                 .concat(stateTransitions[compositeKey] || [])
-                .concat((stateTransitions[epsilonCompositeKey] || []));
+                .concat(stateTransitions[epsilonCompositeKey] || []);
         },
 
-        _serialize: function(f, { target, name } = { target: "node" }) {
+        _serialize: function (f, { target, name } = { target: "node" }) {
             /**
              * Converts the object instance to a string for writing to file.
              * Note this property is removed in the public `machine` object.
              */
-            const serialized = serialize.call(this, initial, transitions, transitionsFound, acceptStates, { target, name });
+            const serialized = serialize.call(
+                this,
+                initial,
+                transitions,
+                transitionsFound,
+                acceptStates,
+                { target, name }
+            );
             if (f) {
                 fs.writeFile(f, serialized, (err) => {
                     if (err) {
@@ -160,7 +183,7 @@ function build(src, { emitFile, target, name } = {}) {
             return serialized;
         },
 
-        _stackMatch: function(t, stackValue) {
+        _stackMatch: function (t, stackValue) {
             /**
              * If transition stack value is epsilon then return true
              * otherwise perform equality check.
@@ -168,7 +191,7 @@ function build(src, { emitFile, target, name } = {}) {
             return t === "_" || t === stackValue;
         },
 
-        _findCompositeKey: function(transitionName, stackValue) {
+        _findCompositeKey: function (transitionName, stackValue) {
             /**
              * Given a transition name e.g. `f`, finds the composite {transition},{state} transition
              * for the current stack value if it exists.
@@ -179,30 +202,33 @@ function build(src, { emitFile, target, name } = {}) {
             for (const key in this.transitions[this.state]) {
                 if (key.startsWith(`${transitionName}:`)) {
                     const [, stackTransition] = key.split(":");
-                    if (!stackTransition || this._stackMatch(stackTransition, stackValue)) {
+                    if (
+                        !stackTransition ||
+                        this._stackMatch(stackTransition, stackValue)
+                    ) {
                         return key;
                     }
                 }
             }
         },
 
-        inAcceptState: function() {
+        inAcceptState: function () {
             const { input, state } = this;
             return !input.length && this.acceptStates.includes(state);
         },
 
-        _clone: function() {
+        _clone: function () {
             return {
                 ...this,
                 stack: [...this.stack],
                 input: [...this.input],
                 state: this.state,
             };
-        }
+        },
     };
 
     if (emitFile && typeof emitFile === "string") {
-        ret.src = machine._serialize(emitFile, { target, name })
+        ret.src = machine._serialize(emitFile, { target, name });
     } else if (emitFile) {
         // Don't write src to file
         ret.src = machine._serialize(null, { target, name });

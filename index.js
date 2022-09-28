@@ -12,7 +12,7 @@ function main() {
         let src;
         try {
             src = fs.readFileSync(inFile, "utf-8");
-        } catch(e) {
+        } catch (e) {
             throw `An error occurred while reading source file: ${e}`;
         }
         build(src, { emitFile });

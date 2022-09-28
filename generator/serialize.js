@@ -3,7 +3,6 @@
  * to a string that can be written and loaded from a JS file
  */
 
-
 function makeTransitionSrc(transitionName, nextState, stackVal) {
     const [transitionAction, stackTransition] = transitionName.split(":");
     let fnStr = `this.state = '${nextState}';\n`;
@@ -11,7 +10,7 @@ function makeTransitionSrc(transitionName, nextState, stackVal) {
         fnStr += "this.input.shift();\n";
     }
     if (stackTransition) {
-        fnStr += "this.stack.pop();\n"
+        fnStr += "this.stack.pop();\n";
     }
     if (stackVal) {
         fnStr += `this.stack.push(...${JSON.stringify(stackVal.split(":"))});`;
@@ -20,13 +19,21 @@ function makeTransitionSrc(transitionName, nextState, stackVal) {
 }
 
 function makeTransitionFunction(transitionName, nextState, stackVal) {
-    const fnStr = makeTransitionSrc(transitionName, nextState, stackVal)
+    const fnStr = makeTransitionSrc(transitionName, nextState, stackVal);
     return new Function(fnStr);
 }
 
-function serialize(initial, transitions, transitionsFound, acceptStates, { target, name } = { target: "node" }) {
+function serialize(
+    initial,
+    transitions,
+    transitionsFound,
+    acceptStates,
+    { target, name } = { target: "node" }
+) {
     if (target === "browser" && !name) {
-        throw new Error("`name` property must be defined when `target` property is 'browser'");
+        throw new Error(
+            "`name` property must be defined when `target` property is 'browser'"
+        );
     }
     let serialized = `
 const initial = "${initial}";
@@ -47,24 +54,31 @@ const fsm = {
     transitions: {
 `;
     for (const [name, ruleTransitions] of Object.entries(transitions)) {
-        serialized += `     "${name}": {\n`
+        serialized += `     "${name}": {\n`;
         for (const transitionName in ruleTransitions) {
             const transitionSrc = [];
             for (const transition of ruleTransitions[transitionName]) {
                 const nextState = transition[`@@nextState_${transitionName}`];
                 const stackVal = transition[`@@stackVal_${transitionName}`];
                 transitionSrc.push(
-                    `{ fn: function() {\n${makeTransitionSrc(transitionName, nextState, stackVal)} } }`.replace(/\n/g, `\n                  `)
+                    `{ fn: function() {\n${makeTransitionSrc(
+                        transitionName,
+                        nextState,
+                        stackVal
+                    )} } }`.replace(/\n/g, `\n                  `)
                 );
             }
             serialized += `         "${transitionName}": [
             ${transitionSrc.join(", ")}],\n`;
         }
-        serialized += "     },\n"
+        serialized += "     },\n";
     }
 
-    serialized += "}};"
-    serialized += target === "node" ? "\nmodule.exports = fsm;\n" : `\nwindow.${name} = fsm;\n`;
+    serialized += "}};";
+    serialized +=
+        target === "node"
+            ? "\nmodule.exports = fsm;\n"
+            : `\nwindow.${name} = fsm;\n`;
 
     return serialized;
 }

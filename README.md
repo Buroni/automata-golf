@@ -3,7 +3,7 @@
 A domain-specific language (DSL) for creating non-deterministic finite-state machines and pushdown automota. 
 Mostly for fun.
 
-In `automata-golf`, a machine is defined by a series of path statements. 
+In `automata-golf`, a machine is defined by a series of path statements.
 There's no need to explicitly define states or transitions.
 
 The example below shows a machine with an initial state `s0`, which transitions
@@ -40,7 +40,7 @@ Regex is supported for pattern matching
 `automata-golf` supports pushdown automota, i.e. a finite-state machine with
 a stack and transitions that push/pop the stack.
 
-The following transitions to `s1` via `f` when `a` is top of the stack. 
+The following transitions to `s1` via `f` when `a` is top of the stack.
 Upon the transition, it pushes `b` to the stack.
 
 ```
@@ -53,11 +53,11 @@ Epsilon is represented by `_`. For example the following transitions to `s1`
 and pushes `$` to the stack without consuming any input or popping the stack.
 
 ```
-.s0 -[_,_]$> (s1); 
+.s0 -[_,_]$> (s1);
 
 # or equivalently:
 
-.s0 -[_]$> (s1); 
+.s0 -[_]$> (s1);
 ```
 
 > Epsilons can usually be omitted, for example `-f>` is short for `-[f,_]_>`.
@@ -127,7 +127,7 @@ console.log(machine.consume("abbba").inAcceptState()); // true
 console.log(machine.consume("abb").inAcceptState()); // false
 ```
 
-Note the program can be golfed to 
+Note the program can be golfed to
 
 ```
 .q0 -[_]Z> q1 -[a]a> q1 -[b]b> q1 -a> q2;
@@ -150,7 +150,7 @@ machine.consume("f");
 
 ### Target
 
-Set `target` to `'browser'` to generate a machine that can be run in a browser 
+Set `target` to `'browser'` to generate a machine that can be run in a browser
 environment:
 
 ```js
