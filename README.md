@@ -141,7 +141,7 @@ The machine can be written to a JS file
 ```js
 // A.js
 const { build } = require("automata-golf/index.js");
-build("(s0) -f> s1", { emitFile: "./machine.js" });
+build(".s0 -f> (s1)", { emitFile: "./machine.js" });
 
 // B.js
 const machine = require("./machine.js");
