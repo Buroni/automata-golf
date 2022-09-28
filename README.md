@@ -154,5 +154,5 @@ Set `target` to `'browser'` to generate a machine that can be run in a browser
 environment:
 
 ```js
-build("(s0) -f> s1", { emitFile: "./machine.js", target: "browser" });
+build(".s0 -f> (s1)", { emitFile: "./machine.js", target: "browser" });
 ```
