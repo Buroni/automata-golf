@@ -12,14 +12,14 @@
  * Line 1:
  * [
  *   { type: 'state', name: 's0', initial: true },
- *   { type: 'transition', direction: 'r', name: 'f,' },
+ *   { type: 'transition', direction: 'r', name: 'f:' },
  *   { type: 'state', name: 's1' }
  * ]
  *
  * Line 2:
  * [
  *   { type: 'state', name: 's0' },
- *   { type: 'transition', direction: 'r', name: 'g,' },
+ *   { type: 'transition', direction: 'r', name: 'g:' },
  *   { type: 'state', name: 's2' }
  * ]
  *
@@ -187,7 +187,6 @@ function unpackRuleStmt(ruleArr) {
 }
 
 function addRegexToTransitions(transitions, statesFound, regexp, regexState) {
-    // TODO - update for NPDAs
     /**
      * Search for states matching given regex pattern, and add th transitions for that regex state
      * if the state matches.
@@ -260,4 +259,4 @@ function mergeRules(rules) {
     }
 }
 
-module.exports = {unpackRuleStmt, mergeRules};
+module.exports = { unpackRuleStmt, mergeRules };

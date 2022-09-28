@@ -58,6 +58,10 @@ function build(src, { emitFile, target, name } = {}) {
         acceptStates,
 
         consume: function(input) {
+            /**
+             * Iterate through every possible path in the machine until either an accepted state is found with an empty input,
+             * or all possible paths are exhausted.
+             */
             if (typeof input === "string") {
                 input = input.split("");
             }
@@ -77,7 +81,9 @@ function build(src, { emitFile, target, name } = {}) {
                     snapshotStack.push(snapshot._clone());
 
                 } else if (possibleTransitions.length > 1) {
-
+                    // If there are multiple possible paths from the current state,
+                    // evaluate the snapshot at each path and merge into current state if one is accepted.
+                    // otherwise push the transitioned snapshot onto the stack.
                     for (const possibleTransition of possibleTransitions) {
                         const snapshotCopy = snapshot._clone();
                         if (this._evaluateSnapshot(snapshotCopy, possibleTransition)) return this;
@@ -87,6 +93,8 @@ function build(src, { emitFile, target, name } = {}) {
 
                 }
             }
+            // In the case that no accepted state is found with an empty input,
+            // halt on the snapshot with the lowest total stack + input value
             Object.assign(this, exhaustedSnapshot);
             return this;
         },
@@ -102,6 +110,10 @@ function build(src, { emitFile, target, name } = {}) {
         },
 
         _evaluateSnapshot: function(snapshot, transition) {
+            /**
+             * Perform the transition on given snapshot and merge
+             * into the current object if it's in an accept state
+             */
             transition.fn.call(snapshot);
 
             if (snapshot.inAcceptState()) {
@@ -112,6 +124,10 @@ function build(src, { emitFile, target, name } = {}) {
         },
 
         _getPossibleTransitions: function() {
+            /**
+             * Get all possible transitions (including epsilon transitions)
+             * given the current state, stack and input
+             */
             const stackValue = this.stack[this.stack.length - 1];
             const inputValue = this.input[0];
             const stateTransitions = this.transitions[this.state];

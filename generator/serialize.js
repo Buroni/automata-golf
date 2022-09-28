@@ -4,9 +4,6 @@
  */
 
 
-const { isMetaProperty } = require("../utils");
-
-
 function makeTransitionSrc(transitionName, nextState, stackVal) {
     const [transitionAction, stackTransition] = transitionName.split(":");
     let fnStr = `this.state = '${nextState}';\n`;
