@@ -1,6 +1,6 @@
 # automata-golf
 
-A domain-specific language (DSL) for creating non-deterministic finite-state machines and pushdown automota. 
+A domain-specific language (DSL) for creating non-deterministic finite-state machines and pushdown automota.
 Mostly for fun.
 
 In `automata-golf`, a machine is defined by a series of path statements.
@@ -118,7 +118,6 @@ machine.consume("abb").inAcceptState(); // false
 The following accepts all odd-length palindromes in the language `{a, b}`
 
 <img width="766" alt="Screenshot 2022-09-27 at 23 59 36" src="https://user-images.githubusercontent.com/3934417/192653414-59a8a6cc-11fc-4c25-8509-d61d185487ba.png">
-
 
 ```js
 const { build } = require("../index.js");

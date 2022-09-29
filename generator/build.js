@@ -64,7 +64,7 @@ function build(src, { emitFile, target, name } = {}) {
              * or all possible paths are exhausted.
              */
 
-             if (reset) {
+            if (reset) {
                 this.reset();
             }
 
