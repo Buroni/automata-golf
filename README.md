@@ -69,14 +69,29 @@ and pushes `$` to the stack without consuming any input or popping the stack.
 The following program accepts all binary numbers ending in `1`
 
 ```js
-const { inline } = require("./automata-golf/index.js");
+const { build } = require("./automata-golf/index.js");
 
-const machine = inline`
+const machine = build(`
 .s0 -0> s0 -1> s0 -1> (s1);
-`;
+`);
 
 machine.consume("10110").inAcceptState(); // false
 machine.consume("1011").inAcceptState(); // true
+```
+
+### Self-driving robot
+
+The following finite-state machine creates a robot that can be turned on and off,
+and switches direction when it collides.
+
+```
+const { build } = require("./automata-golf/index.js");
+
+const { machine } = build(`
+.off <push> forward <collide> backward -push> off;
+`);
+
+machine.consume(["push", "collide"]).state // forward
 ```
 
 ### a<sup>n</sup>b<sup>n</sup>
@@ -86,13 +101,13 @@ The following accepts the format a<sup>n</sup>b<sup>n</sup>
 <img width="804" alt="Screenshot 2022-09-27 at 23 40 50" src="https://user-images.githubusercontent.com/3934417/192653399-ec6f8f2f-35c0-4642-b26e-a3b1c5d0e677.png">
 
 ```js
-const { inline } = require("./automata-golf/index.js");
+const { build } = require("./automata-golf/index.js");
 
-const machine = inline`
+const machine = build(`
 .q0 -[a,_]a> q0;
 q0 -_> (q1);
 q1 -[b,a]> q1;
-`;
+`);
 
 machine.consume("aaabbb").inAcceptState(); // true
 machine.consume("abb").inAcceptState(); // false
@@ -106,9 +121,9 @@ The following accepts all odd-length palindromes in the language `{a, b}`
 
 
 ```js
-const { inline } = require("../index.js");
+const { build } = require("../index.js");
 
-const machine = inline`
+const machine = build(`
 .q0 -[_]$> q1;
 
 q1 -[a]a> q1;
@@ -121,7 +136,7 @@ q2 -[a,a]> q2;
 q2 -[b,b]> q2;
 
 q2 -[_,$]> (q3);
-`;
+`);
 
 console.log(machine.consume("abbba").inAcceptState()); // true
 console.log(machine.consume("abb").inAcceptState()); // false

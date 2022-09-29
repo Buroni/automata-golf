@@ -58,11 +58,16 @@ function build(src, { emitFile, target, name } = {}) {
         transitions,
         acceptStates,
 
-        consume: function (input) {
+        consume: function (input, { reset } = { reset: false }) {
             /**
              * Iterate through every possible path in the machine until either an accepted state is found with an empty input,
              * or all possible paths are exhausted.
              */
+
+             if (reset) {
+                this.reset();
+            }
+
             if (typeof input === "string") {
                 input = input.split("");
             }

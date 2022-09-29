@@ -9,4 +9,8 @@ function BuildError(msg) {
 ParseError.prototype = Error.prototype;
 BuildError.prototype = Error.prototype;
 
-module.exports = { BuildError, ParseError };
+function isMetaProperty(property) {
+    return property.startsWith("@@");
+}
+
+module.exports = { BuildError, ParseError, isMetaProperty };

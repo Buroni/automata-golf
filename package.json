@@ -6,12 +6,13 @@
     "scripts": {
         "parse": "jison ./parser/grammar.jison -o ./parser/grammar.js",
         "prettier": "prettier --write .",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "jest"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "devDependencies": {
+        "jest": "^29.1.1",
         "jison": "^0.4.18",
         "prettier": "2.7.1"
     }
