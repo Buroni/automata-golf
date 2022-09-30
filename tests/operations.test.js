@@ -42,3 +42,19 @@ test("Halts after exhausting possible paths", () => {
     expect(machine.input.length).toBe(1);
     expect(machine.input[0]).toBe("b");
 });
+
+test("Regex", () => {
+    const { machine } = build(`
+        .s0 -e> s1 -f> s2;
+        s2 -g> t1 -g> (t2);
+        /^s[0-9]/ -foo> bar;
+    `);
+    expect(machine.state).toBe("s0");
+    machine.consume(["e", "foo"]);
+    expect(machine.state).toBe("bar");
+
+    machine.reset();
+    expect(machine.state).toBe("s0");
+    machine.consume(["e", "f", "foo"]);
+    expect(machine.state).toBe("bar");
+});
