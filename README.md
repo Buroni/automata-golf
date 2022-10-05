@@ -32,8 +32,6 @@ Starting states are prefixed with `.`; Success states are wrapped in `(` `)`.
 Regex is supported for pattern matching
 
 ```
-.s0 -f> s1 <f- s2;
-
 /^s[0-9]/ -g> t1;
 ```
 
@@ -50,7 +48,7 @@ Multiple transitions from the same state can be stacked up:
 `automata-golf` supports pushdown automota, i.e. a finite-state machine with
 a stack and transitions that push/pop the stack.
 
-The following transitions to `s1` via `f` when `a` is top of the stack.
+The following transitions to `s1` on input `f` when `a` is top of the stack.
 Upon the transition, it pushes `b` to the stack.
 
 ```
