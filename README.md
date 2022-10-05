@@ -98,7 +98,7 @@ machine.consume("1011").inAcceptState(); // true
 The following finite-state machine creates a robot that can be turned on and off,
 and switches direction when it collides.
 
-```
+```js
 const { build } = require("./automata-golf/index.js");
 
 const { machine } = build(`
