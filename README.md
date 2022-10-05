@@ -114,9 +114,9 @@ The following accepts the format a<sup>n</sup>b<sup>n</sup>
 const { build } = require("./automata-golf/index.js");
 
 const machine = build(`
-.q0 -[a,_]a> q0;
-q0 -_> (q1);
-q1 -[b,a]> q1;
+.s0 -[a,_]a> s0;
+s0 -_> (s1);
+s1 -[b,a]> s1;
 `);
 
 machine.consume("aaabbb").inAcceptState(); // true
@@ -133,15 +133,15 @@ The following accepts all odd-length palindromes in the language `{a, b}`
 const { build } = require("../index.js");
 
 const machine = build(`
-.q0 -[_]$> q1;
+.s0 -[_]$> s1;
 
-q1 -[a]a> -[b]b> q1;
+s1 -[a]a> -[b]b> s1;
 
-q1 -a> -b> q2;
+s1 -a> -b> s2;
 
-q2 -[a,a]> -[b,b]> q2;
+s2 -[a,a]> -[b,b]> s2;
 
-q2 -[_,$]> (q3);
+s2 -[_,$]> (s3);
 `);
 
 console.log(machine.consume("abbba").inAcceptState()); // true
@@ -151,7 +151,7 @@ console.log(machine.consume("abb").inAcceptState()); // false
 Note the program can be golfed to
 
 ```
-.q0 -[_]Z> q1 -[a]a> -[b]b> q1 -a> -b> q2 -[a,a]> -[b,b]> q2 -[_,Z]> (q3);
+.s0 -[_]Z> s1 -[a]a> -[b]b> s1 -a> -b> s2 -[a,a]> -[b,b]> s2 -[_,Z]> (s3);
 ```
 
 ## Build to JS
