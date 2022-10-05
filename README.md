@@ -9,6 +9,8 @@ There's no need to explicitly define states or transitions.
 The example below shows a machine with an initial state `s0`, which transitions
 via `f` to and from the accepted state `s1` .
 
+<img width="519" alt="Screenshot 2022-10-05 at 13 28 29" src="https://user-images.githubusercontent.com/3934417/194060304-5931d456-66b7-4297-ba61-1b987a5000bb.png">
+
 ```
 # 1,2, and 3 are all equivalent:
 
@@ -76,7 +78,7 @@ and pushes `$` to the stack without consuming any input or popping the stack.
 
 The following program accepts all binary numbers ending in `1`
 
-<img width="311" alt="Screenshot 2022-10-05 at 13 12 59" src="https://user-images.githubusercontent.com/3934417/194057651-c148d885-1c01-470d-a80b-e7235736742c.png">
+<img width="542" alt="Screenshot 2022-10-05 at 13 25 48" src="https://user-images.githubusercontent.com/3934417/194059891-9494d69e-fdcc-4f84-9d19-05c327609e94.png">
 
 ```js
 const { build } = require("./automata-golf/index.js");
@@ -108,7 +110,7 @@ machine.consume(["push", "collide"]).state // forward
 
 The following accepts the format a<sup>n</sup>b<sup>n</sup>
 
-<img width="766" alt="Screenshot 2022-10-05 at 13 06 17" src="https://user-images.githubusercontent.com/3934417/194056550-83fc87dd-36cc-4a25-a2f7-267f8fd51a0e.png">
+<img width="799" alt="Screenshot 2022-10-05 at 13 27 10" src="https://user-images.githubusercontent.com/3934417/194060081-cf676e9d-6f5c-430a-985a-08e5ae9a8e84.png">
 
 ```js
 const { build } = require("./automata-golf/index.js");
@@ -127,7 +129,8 @@ machine.consume("abb").inAcceptState(); // false
 
 The following accepts all odd-length palindromes in the language `{a, b}`
 
-<img width="938" alt="Screenshot 2022-10-05 at 13 05 36" src="https://user-images.githubusercontent.com/3934417/194056474-be0fc879-2b26-4bcb-b27e-7defbd0d4983.png">
+<img width="962" alt="Screenshot 2022-10-05 at 13 27 33" src="https://user-images.githubusercontent.com/3934417/194060144-a14c4114-08a5-4b30-8a07-a273357aa8ae.png">
+
 
 ```js
 const { build } = require("../index.js");
