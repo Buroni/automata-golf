@@ -1,6 +1,6 @@
 # automata-golf
 
-A domain-specific language (DSL) written in javascript, for creating non-deterministic finite-state machines and pushdown automota.
+A domain-specific language (DSL) for creating non-deterministic finite-state machines and pushdown automota.
 Mostly for fun.
 
 In `automata-golf`, a machine is defined by a series of path statements.
