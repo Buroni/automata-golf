@@ -35,6 +35,14 @@ Regex is supported for pattern matching
 /^s[0-9]/ -g> t1;
 ```
 
+## Stacking transitions
+
+Multiple transitions from the same state can be stacked up:
+
+```
+.s0 -f> -g> -h> s1;
+```
+
 ## Pushdown automota
 
 `automata-golf` supports pushdown automota, i.e. a finite-state machine with
@@ -68,11 +76,13 @@ and pushes `$` to the stack without consuming any input or popping the stack.
 
 The following program accepts all binary numbers ending in `1`
 
+<img width="652" alt="Screenshot 2022-10-05 at 13 03 54" src="https://user-images.githubusercontent.com/3934417/194056331-904cd9c1-2e07-4738-b7ad-8af2b036f2e0.png">
+
 ```js
 const { build } = require("./automata-golf/index.js");
 
 const machine = build(`
-.s0 -0> s0 -1> s0 -1> (s1);
+.s0 -0> -1> s0 -1> (s1);
 `);
 
 machine.consume("10110").inAcceptState(); // false
@@ -98,7 +108,7 @@ machine.consume(["push", "collide"]).state // forward
 
 The following accepts the format a<sup>n</sup>b<sup>n</sup>
 
-<img width="804" alt="Screenshot 2022-09-27 at 23 40 50" src="https://user-images.githubusercontent.com/3934417/192653399-ec6f8f2f-35c0-4642-b26e-a3b1c5d0e677.png">
+<img width="766" alt="Screenshot 2022-10-05 at 13 06 17" src="https://user-images.githubusercontent.com/3934417/194056550-83fc87dd-36cc-4a25-a2f7-267f8fd51a0e.png">
 
 ```js
 const { build } = require("./automata-golf/index.js");
@@ -117,7 +127,7 @@ machine.consume("abb").inAcceptState(); // false
 
 The following accepts all odd-length palindromes in the language `{a, b}`
 
-<img width="766" alt="Screenshot 2022-09-27 at 23 59 36" src="https://user-images.githubusercontent.com/3934417/192653414-59a8a6cc-11fc-4c25-8509-d61d185487ba.png">
+<img width="938" alt="Screenshot 2022-10-05 at 13 05 36" src="https://user-images.githubusercontent.com/3934417/194056474-be0fc879-2b26-4bcb-b27e-7defbd0d4983.png">
 
 ```js
 const { build } = require("../index.js");
@@ -125,14 +135,11 @@ const { build } = require("../index.js");
 const machine = build(`
 .q0 -[_]$> q1;
 
-q1 -[a]a> q1;
-q1 -[b]b> q1;
+q1 -[a]a> -[b]b> q1;
 
-q1 -a> q2;
-q1 -b> q2;
+q1 -a> -b> q2;
 
-q2 -[a,a]> q2;
-q2 -[b,b]> q2;
+q2 -[a,a]> -[b,b]> q2;
 
 q2 -[_,$]> (q3);
 `);
@@ -144,8 +151,7 @@ console.log(machine.consume("abb").inAcceptState()); // false
 Note the program can be golfed to
 
 ```
-.q0 -[_]Z> q1 -[a]a> q1 -[b]b> q1 -a> q2;
-q1 -b> q2 -[a,a]> q2 -[b,b]> q2 -[_,Z]> (q3);
+.q0 -[_]Z> q1 -[a]a> -[b]b> q1 -a> -b> q2 -[a,a]> -[b,b]> q2 -[_,Z]> (q3);
 ```
 
 ## Build to JS
