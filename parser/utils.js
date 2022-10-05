@@ -152,29 +152,37 @@ function unpackRuleStmt(ruleArr) {
 
     ruleArr.forEach((state, i) => {
         if (state.type === "state" && i !== ruleArr.length - 1) {
-            const transition = ruleArr[i + 1];
+            // TODO - handle 1-item array in jison parser;
+            // `transitionItem` may be a kvp object or array
+            const transitionItem = ruleArr[i + 1];
+            const transitions = Array.isArray(transitionItem)
+                ? transitionItem
+                : [transitionItem];
             const nextState = ruleArr[i + 2];
 
             pushFound(statesFound, state.name);
             pushFound(statesFound, nextState.name);
-            pushFound(transitionsFound, transition.name.split(":")[0]);
 
             state.accept && pushFound(acceptStates, state.name);
             nextState.accept && pushFound(acceptStates, nextState.name);
 
-            switch (transition.direction) {
-                case "r":
-                    builder.addTransition(state, transition, nextState);
-                    break;
-                case "l":
-                    builder.addTransition(nextState, transition, state);
-                    break;
-                case "lr":
-                    builder.addTransition(state, transition, nextState);
-                    builder.addTransition(nextState, transition, state);
-                    break;
-                default:
-                    break;
+            for (const transition of transitions) {
+                pushFound(transitionsFound, transition.name.split(":")[0]);
+
+                switch (transition.direction) {
+                    case "r":
+                        builder.addTransition(state, transition, nextState);
+                        break;
+                    case "l":
+                        builder.addTransition(nextState, transition, state);
+                        break;
+                    case "lr":
+                        builder.addTransition(state, transition, nextState);
+                        builder.addTransition(nextState, transition, state);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     });
@@ -258,7 +266,7 @@ function mergeRules(rules) {
     const initial = rules.find((r) => r.initial)?.initial;
     if (!initial) {
         throw new ParseError(
-            "Initial state not found; set initial state by wrapping in parenthesis, e.g. `(s0) -f> s1`"
+            "Initial state not found; set initial state by prefixing with `.`, e.g. `.s0 -f> s1`"
         );
     }
 

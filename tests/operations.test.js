@@ -5,9 +5,17 @@ test("Left transition", () => {
     expect(machine.consume("f").state).toBe("s1");
 });
 
-test("Double transition", () => {
+test("Two-way transition", () => {
     const { machine } = build(`s1 <f> .s0;`);
     expect(machine.consume("ff").state).toBe("s0");
+});
+
+test("Double transition", () => {
+    const { machine } = build(`s1 <g- <f> .s0;`);
+    expect(machine.consume("ff").state).toBe("s0");
+    machine.reset();
+    expect(machine.consume("f").state).toBe("s1");
+    expect(machine.consume("g").state).toBe("s1");
 });
 
 test("Transitions to the success stata via epsilons", () => {

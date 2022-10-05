@@ -46,7 +46,7 @@ rule_transitions
     | rule_transition
     ;
 rule_transition
-    : state transition -> [$1, { type: "transition", ...$2 }]
+    : state transitions -> [$1, $2]
     ;
 state
     : "(" IDENT ")" -> { type: "state", name: $2, accept: true }
@@ -56,13 +56,17 @@ state
     | "*" -> { type: "state", name: "@@regexp:.*" }
     | REGEX -> { type: "state", name: `@@regexp:${$1.slice(1, -1)}` }
     ;
+transitions
+    : transitions transition -> [$1, $2]
+    | transition
+    ;
 transition
-    : "<" IDENT ">" -> { direction: "lr", name: `${$2}:` }
-    | "<" IDENT "-" -> { direction: "l", name: `${$2}:` }
-    | "-" IDENT ">" -> { direction: "r", name: `${$2}:` }
-    | "<" pda_definition ">" -> { direction: "lr", ...$2 }
-    | "<" pda_definition "-" -> { direction: "l", ...$2 }
-    | "-" pda_definition ">" -> { direction: "r", ...$2 }
+    : "<" IDENT ">" -> { type: "transition", direction: "lr", name: `${$2}:` }
+    | "<" IDENT "-" -> { type: "transition", direction: "l", name: `${$2}:` }
+    | "-" IDENT ">" -> { type: "transition", direction: "r", name: `${$2}:` }
+    | "<" pda_definition ">" -> { type: "transition", direction: "lr", ...$2 }
+    | "<" pda_definition "-" -> { type: "transition", direction: "l", ...$2 }
+    | "-" pda_definition ">" -> { type: "transition", direction: "r", ...$2 }
     ;
 pda_definition
     : "[" IDENT "," IDENT "]" IDENT -> { name: $4 === "_" ? `${$2}:` : `${$2}:${$4}`, stackVal: $6 === "_" ? undefined : $6 }
