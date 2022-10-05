@@ -1,6 +1,6 @@
 # automata-golf
 
-A domain-specific language (DSL) for creating non-deterministic finite-state machines and pushdown automota.
+A domain-specific language (DSL) for creating non-deterministic [finite-state machines](https://en.wikipedia.org/wiki/Finite-state_machine) and [pushdown automota](https://en.wikipedia.org/wiki/Pushdown_automaton).
 Mostly for fun.
 
 In `automata-golf`, a machine is defined by a series of path statements.
