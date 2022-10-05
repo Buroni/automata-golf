@@ -57,6 +57,8 @@ Upon the transition, it pushes `b` to the stack.
 .s0 -[f,a]b> s1;
 ```
 
+<img width="507" alt="Screenshot 2022-10-05 at 13 35 39" src="https://user-images.githubusercontent.com/3934417/194061616-49be2ba3-ca5b-48a7-9eb5-5c520bb6c1e1.png">
+
 ### Epsilon transitions
 
 Epsilon is represented by `_`. For example the following transitions to `s1`
