@@ -76,7 +76,7 @@ and pushes `$` to the stack without consuming any input or popping the stack.
 
 The following program accepts all binary numbers ending in `1`
 
-<img width="652" alt="Screenshot 2022-10-05 at 13 03 54" src="https://user-images.githubusercontent.com/3934417/194056331-904cd9c1-2e07-4738-b7ad-8af2b036f2e0.png">
+<img width="311" alt="Screenshot 2022-10-05 at 13 12 59" src="https://user-images.githubusercontent.com/3934417/194057651-c148d885-1c01-470d-a80b-e7235736742c.png">
 
 ```js
 const { build } = require("./automata-golf/index.js");
