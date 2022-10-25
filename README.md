@@ -103,7 +103,7 @@ const { machine } = build(`
 .off <push> forward <collide> backward -push> off;
 `);
 
-machine.consume(["push", "collide"]).state // forward
+machine.consume(["push", "collide"]).state // backward
 ```
 
 ### a<sup>n</sup>b<sup>n</sup>
