@@ -47,6 +47,8 @@ function build(src, { emitFile, target, name } = {}) {
     }
 
     const unpackedRules = parser.parse(src);
+    return;
+
     const { initial, transitions, transitionsFound, acceptStates } =
         unpackedRules;
     const ret = {};

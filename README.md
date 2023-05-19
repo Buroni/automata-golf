@@ -103,7 +103,7 @@ const { machine } = build(`
 .off <push> forward <collide> backward -push> off;
 `);
 
-machine.consume(["push", "collide"]).state // backward
+machine.consume(["push", "collide"]).state; // backward
 ```
 
 ### a<sup>n</sup>b<sup>n</sup>
@@ -130,7 +130,6 @@ machine.consume("abb").inAcceptState(); // false
 The following accepts all odd-length palindromes in the language `{a, b}`
 
 <img width="962" alt="Screenshot 2022-10-05 at 13 27 33" src="https://user-images.githubusercontent.com/3934417/194060144-a14c4114-08a5-4b30-8a07-a273357aa8ae.png">
-
 
 ```js
 const { build } = require("../index.js");

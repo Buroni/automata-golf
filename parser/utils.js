@@ -136,6 +136,7 @@ function unpackRuleStmt(ruleArr) {
     /**
      * Converts rule statement into an array of transitions.
      */
+    console.dir(ruleArr, { depth: null });
     const builder = new TransitionBuilder();
 
     // Use statesFound instead of checking `Object.keys(transitions)` as some states

@@ -17,9 +17,10 @@
 ","                         return ",";
 ","                         return ",";
 "."                         return ".";
+":"                         return ":";
 \/[^\/]*\/                  return "REGEX";
 
-[A-Za-z0-9_$:]+    return "IDENT";
+[A-Za-z0-9_$]+    return "IDENT";
 
 /lex
 
@@ -69,10 +70,15 @@ transition
     | "-" pda_definition ">" -> { type: "transition", direction: "r", ...$2 }
     ;
 pda_definition
-    : "[" IDENT "," IDENT "]" IDENT -> { name: $4 === "_" ? `${$2}:` : `${$2}:${$4}`, stackVal: $6 === "_" ? undefined : $6 }
-    | "[" IDENT "]" IDENT -> { name: `${$2}:`, stackVal: $4 === "_" ? undefined : $4 }
-    | IDENT "[" IDENT "," IDENT "]" -> { name: $5 === "_" ? `${$3}:` : `${$3}:${$5}`, stackVal: $1 === "_" ? undefined : $1}
-    | IDENT "[" IDENT "]" -> { name: `${$3}:`, stackVal: $1 === "_" ? undefined : $1 }
-    | "[" IDENT "]" -> { name: `${$2}:` }
-    | "[" IDENT "," IDENT "]" -> { name: $4 === "_" ? `${$2}:` : `${$2}:${$4}` }
+    : IDENT "[" stack_pairs "]" -> { input: $1 === "_" ? undefined : $1, stacks: $3 }
+    | "[" stack_pairs "]" -> { stacks: [$1] }
     ;
+stack_pairs
+    : stack_pairs "," stack_pair -> [$1, $3]
+    | stack_pair
+    ;
+stack_pair
+    : IDENT -> { read: $1 }
+    | IDENT ":" IDENT -> { read: $1, write: $3 }
+    ;
+
