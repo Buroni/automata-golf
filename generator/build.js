@@ -47,6 +47,7 @@ function build(src, { emitFile, target, name } = {}) {
     }
 
     const unpackedRules = parser.parse(src);
+    // console.dir(unpackedRules, { depth: null });
     return;
 
     const { initial, transitions, transitionsFound, acceptStates } =

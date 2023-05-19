@@ -240,21 +240,21 @@ var grammar = (function () {
                     this.$ = {
                         type: "transition",
                         direction: "lr",
-                        name: `${$$[$0 - 1]}:`,
+                        input: $$[$0 - 1],
                     };
                     break;
                 case 18:
                     this.$ = {
                         type: "transition",
                         direction: "l",
-                        name: `${$$[$0 - 1]}:`,
+                        input: $$[$0 - 1],
                     };
                     break;
                 case 19:
                     this.$ = {
                         type: "transition",
                         direction: "r",
-                        name: `${$$[$0 - 1]}:`,
+                        input: $$[$0 - 1],
                     };
                     break;
                 case 20:
@@ -285,7 +285,7 @@ var grammar = (function () {
                     };
                     break;
                 case 24:
-                    this.$ = { stacks: [$$[$0 - 2]] };
+                    this.$ = { stacks: $$[$0 - 2] };
                     break;
                 case 25:
                     this.$ = [$$[$0 - 2], $$[$0]];

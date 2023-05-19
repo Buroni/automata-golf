@@ -62,16 +62,16 @@ transitions
     | transition
     ;
 transition
-    : "<" IDENT ">" -> { type: "transition", direction: "lr", name: `${$2}:` }
-    | "<" IDENT "-" -> { type: "transition", direction: "l", name: `${$2}:` }
-    | "-" IDENT ">" -> { type: "transition", direction: "r", name: `${$2}:` }
+    : "<" IDENT ">" -> { type: "transition", direction: "lr", input: $2 }
+    | "<" IDENT "-" -> { type: "transition", direction: "l", input: $2 }
+    | "-" IDENT ">" -> { type: "transition", direction: "r", input: $2 }
     | "<" pda_definition ">" -> { type: "transition", direction: "lr", ...$2 }
     | "<" pda_definition "-" -> { type: "transition", direction: "l", ...$2 }
     | "-" pda_definition ">" -> { type: "transition", direction: "r", ...$2 }
     ;
 pda_definition
     : IDENT "[" stack_pairs "]" -> { input: $1 === "_" ? undefined : $1, stacks: $3 }
-    | "[" stack_pairs "]" -> { stacks: [$1] }
+    | "[" stack_pairs "]" -> { stacks: $1 }
     ;
 stack_pairs
     : stack_pairs "," stack_pair -> [$1, $3]
@@ -81,4 +81,3 @@ stack_pair
     : IDENT -> { read: $1 }
     | IDENT ":" IDENT -> { read: $1, write: $3 }
     ;
-

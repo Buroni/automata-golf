@@ -46,20 +46,6 @@
 const { ParseError, isMetaProperty } = require("../utils.js");
 const { makeTransitionFunction } = require("../generator/serialize.js");
 
-function mergeRuleToTarget(rule, state, target) {
-    /**
-     * For each transition at the given state, assign it to the target object.
-     */
-    for (const transitionName in rule[state]) {
-        if (!target[state][transitionName]) {
-            target[state][transitionName] = [];
-        }
-        if (Array.isArray(rule[state][transitionName]))
-            target[state][transitionName].push(...rule[state][transitionName]);
-        else target[state][transitionName].push(rule[state][transitionName]);
-    }
-}
-
 function mergeTransitions(...rules) {
     /**
      * Merges array of transition rules for multiple path statements into a single object.
@@ -85,11 +71,12 @@ function mergeTransitions(...rules) {
     for (const rule of rules) {
         for (const state in rule) {
             if (!target[state]) {
-                target[state] = {};
+                target[state] = [];
             }
-            mergeRuleToTarget(rule, state, target);
+            target[state].push(...rule[state]);
         }
     }
+
     return target;
 }
 
@@ -98,37 +85,35 @@ function TransitionBuilder() {
      * Builds an object of executable transition functions, pushing a new transition
      * for each `(state, transition, nextState)` tuple given to the `addTransition` method.
      */
-    this.transitions = {};
+    this.transitions = [];
 
     this.addTransition = function (state, transition, nextState) {
-        const fn = makeTransitionFunction(
-            transition.name,
-            nextState.name,
-            transition.stackVal
-        );
-        const { name } = state;
+        const fn = makeTransitionFunction(transition, nextState.name);
 
         const transitionObj = {
             fn,
             // @@ values are used for generating source code, as the needed
             // value is hidden inside the function closure during code generation.
-            [`@@nextState_${transition.name}`]: nextState.name,
+            [`@@nextState_${transition.input}`]: nextState.name,
         };
 
-        if (transition.stackVal) {
-            transitionObj[`@@stackVal_${transition.name}`] =
-                transition.stackVal;
+        if (transition.stacks?.length) {
+            transitionObj[`@@stackVal_${transition.input}`] =
+                transition.stacks[0].write;
         }
 
-        if (!this.transitions[name]) {
-            this.transitions[name] = [];
+        if (!this.transitions[state.name]) {
+            this.transitions[state.name] = [];
         }
 
-        if (!this.transitions[name][transition.name]) {
-            this.transitions[name][transition.name] = [];
-        }
-
-        this.transitions[name][transition.name].push(transitionObj);
+        this.transitions[state.name].push({
+            filter: {
+                state: state.name,
+                input: transition.input,
+                stackValues: transition.stacks?.map((s) => s.read) || [],
+            },
+            ...transitionObj,
+        });
     };
 }
 
@@ -136,7 +121,6 @@ function unpackRuleStmt(ruleArr) {
     /**
      * Converts rule statement into an array of transitions.
      */
-    console.dir(ruleArr, { depth: null });
     const builder = new TransitionBuilder();
 
     // Use statesFound instead of checking `Object.keys(transitions)` as some states
@@ -156,6 +140,7 @@ function unpackRuleStmt(ruleArr) {
             // TODO - handle 1-item array in jison parser;
             // `transitionItem` may be a kvp object or array
             const transitionItem = ruleArr[i + 1];
+            // console.dir(transitionItem, { depth: null });
             const transitions = Array.isArray(transitionItem)
                 ? transitionItem
                 : [transitionItem];
@@ -168,7 +153,7 @@ function unpackRuleStmt(ruleArr) {
             nextState.accept && pushFound(acceptStates, nextState.name);
 
             for (const transition of transitions) {
-                pushFound(transitionsFound, transition.name.split(":")[0]);
+                pushFound(transitionsFound, transition.input);
 
                 switch (transition.direction) {
                     case "r":
@@ -254,10 +239,8 @@ function mergeRules(rules) {
     const flatUnique = (arr, prop) => [
         ...new Set(arr.map((r) => r[prop]).flat()),
     ];
-    const transitions = mergeTransitions(
-        {},
-        ...rules.map((r) => r.transitions)
-    );
+    const transitions = mergeTransitions(...rules.map((r) => r.transitions));
+    // console.dir(transitions, { depth: null });
     const statesFound = flatUnique(rules, "statesFound");
     const acceptStates = flatUnique(rules, "acceptStates");
     const transitionsFound = flatUnique(rules, "transitionsFound");

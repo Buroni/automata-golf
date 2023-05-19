@@ -3,8 +3,13 @@
  * to a string that can be written and loaded from a JS file
  */
 
-function makeTransitionSrc(transitionName, nextState, stackVal) {
-    const [transitionAction, stackTransition] = transitionName.split(":");
+function makeTransitionSrc(transition, nextState) {
+    // const [transitionAction, stackTransition] = transitionName.split(":");
+    const transitionAction = transition.input;
+    const stackTransition =
+        transition.stacks?.length && transition.stacks[0].read;
+    const stackVal = transition.stacks?.length && transition.stacks[0].write;
+
     let fnStr = `this.state = '${nextState}';\n`;
     if (transitionAction !== "_") {
         fnStr += "this.input.shift();\n";
@@ -13,7 +18,7 @@ function makeTransitionSrc(transitionName, nextState, stackVal) {
         fnStr += "this.stack.pop();\n";
     }
     if (stackVal) {
-        fnStr += `this.stack.push(...${JSON.stringify(stackVal.split(":"))});`;
+        fnStr += `this.stack.push("${stackVal}");`;
     }
     return fnStr;
 }
