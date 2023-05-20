@@ -183,24 +183,27 @@ function unpackRuleStmt(ruleArr) {
     };
 }
 
-function addRegexToTransitions(transitions, statesFound, regexp, regexState) {
+function addRegexToTransitions(
+    transitions,
+    statesFound,
+    regexp,
+    regexTransitions
+) {
     /**
-     * Search for states matching given regex pattern, and add th transitions for that regex state
+     * Search for states matching given regex pattern, and add the transitions for that regex state
      * if the state matches.
      */
     for (const state of statesFound) {
-        for (const transitionName in regexState) {
+        if (state.match(regexp)) {
             if (!transitions[state]) {
-                transitions[state] = {};
+                transitions[state] = [];
             }
-            if (state.match(regexp)) {
-                if (!transitions[state][transitionName]) {
-                    transitions[state][transitionName] = [];
-                }
-                transitions[state][transitionName].push(
-                    ...regexState[transitionName]
-                );
-            }
+            transitions[state].push(
+                ...regexTransitions.map((t) => ({
+                    ...t,
+                    filter: { ...t.filter, state },
+                }))
+            );
         }
     }
 }
@@ -211,7 +214,7 @@ function applyRegex(transitions, statesFound) {
      *
      * (s0) -f> s1;
      * s0 -g> s2;
-     * /s[0-9]/ -foo> bar;
+     * /s[0-2]/ -foo> bar;
      *
      * Adds the following transitions:
      * s0 -foo> bar;
@@ -223,11 +226,16 @@ function applyRegex(transitions, statesFound) {
         if (!regex) {
             continue;
         }
-        const regexState = transitions[state];
+        const regexTransitions = transitions[state];
         const regexp = new RegExp(regex);
         // We don't want `/regexp/` to be treated as a literal state
         delete transitions[state];
-        addRegexToTransitions(transitions, statesFound, regexp, regexState);
+        addRegexToTransitions(
+            transitions,
+            statesFound,
+            regexp,
+            regexTransitions
+        );
     }
 }
 
