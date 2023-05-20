@@ -70,12 +70,12 @@ transition
     | "-" pda_definition ">" -> { type: "transition", direction: "r", ...$2 }
     ;
 pda_definition
-    : IDENT "[" stack_pairs "]" -> { input: $1 === "_" ? undefined : $1, stacks: $3 }
-    | "[" stack_pairs "]" -> { stacks: $1 }
+    : IDENT "[" stack_pairs "]" -> { input: $1, stacks: $3 }
+    | "[" stack_pairs "]" -> { input: "_", stacks: $2 }
     ;
 stack_pairs
-    : stack_pairs "," stack_pair -> [$1, $3]
-    | stack_pair
+    : stack_pairs "," stack_pair -> [...$1, $3]
+    | stack_pair -> [$1]
     ;
 stack_pair
     : IDENT -> { read: $1 }

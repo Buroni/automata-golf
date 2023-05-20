@@ -279,16 +279,16 @@ var grammar = (function () {
                     };
                     break;
                 case 23:
-                    this.$ = {
-                        input: $$[$0 - 3] === "_" ? undefined : $$[$0 - 3],
-                        stacks: $$[$0 - 1],
-                    };
+                    this.$ = { input: $$[$0 - 3], stacks: $$[$0 - 1] };
                     break;
                 case 24:
-                    this.$ = { stacks: $$[$0 - 2] };
+                    this.$ = { input: "_", stacks: $$[$0 - 1] };
                     break;
                 case 25:
-                    this.$ = [$$[$0 - 2], $$[$0]];
+                    this.$ = [...$$[$0 - 2], $$[$0]];
+                    break;
+                case 26:
+                    this.$ = [$$[$0]];
                     break;
                 case 27:
                     this.$ = { read: $$[$0] };

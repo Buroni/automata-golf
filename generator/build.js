@@ -47,15 +47,13 @@ function build(src, { emitFile, target, name } = {}) {
     }
 
     const unpackedRules = parser.parse(src);
-    // console.dir(unpackedRules, { depth: null });
-    return;
 
     const { initial, transitions, transitionsFound, acceptStates } =
         unpackedRules;
     const ret = {};
 
     const machine = {
-        stack: [],
+        stacks: [[], []], // TODO - support n stacks
         state: initial,
         input: [],
         transitions,
@@ -121,14 +119,16 @@ function build(src, { emitFile, target, name } = {}) {
         },
 
         reset: function () {
-            this.stack = [];
+            this.stacks = [];
             this.state = initial;
             return this;
         },
 
         _mostExhausted: function (s1, s2) {
-            return s1.stack.length + s1.input.length <=
-                s2.stack.length + s2.input.length
+            return s1.stacks.reduce((acc, el) => acc + el.length, 0) +
+                s1.input.length <=
+                s2.stacks.reduce((acc, el) => acc + el.length, 0) +
+                    s2.input.length
                 ? s1
                 : s2;
         },
@@ -152,20 +152,28 @@ function build(src, { emitFile, target, name } = {}) {
              * Get all possible transitions (including epsilon transitions)
              * given the current state, stack and input
              */
-            const stackValue = this.stack[this.stack.length - 1];
+            const stackValues = this.stacks.map((s) => s[s.length - 1]);
             const inputValue = this.input[0];
             const stateTransitions = this.transitions[this.state];
+            const possibleTransitions = [];
 
             if (!stateTransitions) {
                 return [];
             }
 
-            const compositeKey = this._findCompositeKey(inputValue, stackValue);
-            const epsilonCompositeKey = this._findCompositeKey("_", stackValue);
-
-            return []
-                .concat(stateTransitions[compositeKey] || [])
-                .concat(stateTransitions[epsilonCompositeKey] || []);
+            for (const t of stateTransitions) {
+                const { filter } = t;
+                if (
+                    (filter.input === inputValue || filter.input === "_") &&
+                    filter.stackValues.every(
+                        (sv, idx) => sv === stackValues[idx] || sv === "_"
+                    ) // TODO - check `sv` epsilon?
+                ) {
+                    possibleTransitions.push(t);
+                }
+            }
+            console.log("--", possibleTransitions);
+            return possibleTransitions;
         },
 
         _serialize: function (f, { target, name } = { target: "node" }) {
@@ -199,7 +207,7 @@ function build(src, { emitFile, target, name } = {}) {
             return t === "_" || t === stackValue;
         },
 
-        _findCompositeKey: function (transitionName, stackValue) {
+        _findCompositeKey: function (transitionName, stackValues) {
             /**
              * Given a transition name e.g. `f`, finds the composite {transition},{state} transition
              * for the current stack value if it exists.
@@ -212,7 +220,7 @@ function build(src, { emitFile, target, name } = {}) {
                     const [, stackTransition] = key.split(":");
                     if (
                         !stackTransition ||
-                        this._stackMatch(stackTransition, stackValue)
+                        this._stackMatch(stackTransition, stackValues)
                     ) {
                         return key;
                     }
@@ -228,7 +236,7 @@ function build(src, { emitFile, target, name } = {}) {
         _clone: function () {
             return {
                 ...this,
-                stack: [...this.stack],
+                stacks: [...this.stacks],
                 input: [...this.input],
                 state: this.state,
             };

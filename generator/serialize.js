@@ -4,21 +4,20 @@
  */
 
 function makeTransitionSrc(transition, nextState) {
-    // const [transitionAction, stackTransition] = transitionName.split(":");
     const transitionAction = transition.input;
-    const stackTransition =
-        transition.stacks?.length && transition.stacks[0].read;
-    const stackVal = transition.stacks?.length && transition.stacks[0].write;
 
     let fnStr = `this.state = '${nextState}';\n`;
+
     if (transitionAction !== "_") {
         fnStr += "this.input.shift();\n";
     }
-    if (stackTransition) {
-        fnStr += "this.stack.pop();\n";
-    }
-    if (stackVal) {
-        fnStr += `this.stack.push("${stackVal}");`;
+
+    for (let i = 0; i < transition.stacks?.length || 0; i++) {
+        fnStr += `this.stacks[${i}].pop();\n`;
+        const stackVal = transition.stacks[i].write;
+        if (stackVal) {
+            fnStr += `this.stacks[${i}].push("${stackVal}");`;
+        }
     }
     return fnStr;
 }

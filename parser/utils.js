@@ -240,7 +240,6 @@ function mergeRules(rules) {
         ...new Set(arr.map((r) => r[prop]).flat()),
     ];
     const transitions = mergeTransitions(...rules.map((r) => r.transitions));
-    // console.dir(transitions, { depth: null });
     const statesFound = flatUnique(rules, "statesFound");
     const acceptStates = flatUnique(rules, "acceptStates");
     const transitionsFound = flatUnique(rules, "transitionsFound");
