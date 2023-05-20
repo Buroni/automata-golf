@@ -13,12 +13,15 @@ function makeTransitionSrc(transition, nextState) {
     }
 
     for (let i = 0; i < transition.stacks?.length || 0; i++) {
-        fnStr += `this.stacks[${i}].pop();\n`;
+        if (transition.stacks[i].read !== "_") {
+            fnStr += `this.stacks[${i}].pop();\n`;
+        }
         const stackVal = transition.stacks[i].write;
         if (stackVal) {
             fnStr += `this.stacks[${i}].push("${stackVal}");`;
         }
     }
+    fnStr += "console.log(this.input, this.stacks)";
     return fnStr;
 }
 

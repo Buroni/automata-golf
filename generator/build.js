@@ -172,7 +172,6 @@ function build(src, { emitFile, target, name } = {}) {
                     possibleTransitions.push(t);
                 }
             }
-            console.log("--", possibleTransitions);
             return possibleTransitions;
         },
 

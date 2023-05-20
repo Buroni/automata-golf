@@ -140,7 +140,6 @@ function unpackRuleStmt(ruleArr) {
             // TODO - handle 1-item array in jison parser;
             // `transitionItem` may be a kvp object or array
             const transitionItem = ruleArr[i + 1];
-            // console.dir(transitionItem, { depth: null });
             const transitions = Array.isArray(transitionItem)
                 ? transitionItem
                 : [transitionItem];
