@@ -80,4 +80,5 @@ stack_pairs
 stack_pair
     : IDENT -> { read: $1 }
     | IDENT ":" IDENT -> { read: $1, write: $3 }
+    | ":" IDENT -> { read: "_", write: $2 }
     ;
