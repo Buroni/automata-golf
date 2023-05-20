@@ -11,8 +11,11 @@ test("Builds a NFSA that accepts odd binary numbers", () => {
 
 test("Builds a NPDA that accepts odd-length palindromes", () => {
     const { machine } = build(`
-        .q0 -[_]Z> q1 -[a]a> q1 -[b]b> q1 -a> q2;
-        q1 -b> q2 -[a,a]> q2 -[b,b]> q2 -[_,Z]> (q3);  
+        .s0 -[_:$]> s1;
+        s1 -a[_:a]> -b[_:b]> s1;
+        s1 -a> -b> s2;
+        s2 -a[a]> -b[b]> s2;
+        s2 -[$]> (s3); 
     `);
     expect(accepted(machine, "aabbbaa")).toBe(true);
     expect(accepted(machine, "a")).toBe(true);
@@ -21,10 +24,9 @@ test("Builds a NPDA that accepts odd-length palindromes", () => {
 
 test("Builds a NPDA that accepts a^(n)b^(n)", () => {
     const { machine } = build(`
-        .q0 -[a,_]a> q0;
-        .q0 -[a,_]a> q0;
-        q0 -_> (q1);
-        q1 -[b,a]> q1;
+        .s0 -a[_:a]> s0;
+        s0 -_> (s1);
+        s1 -b[a]> s1;
     `);
     expect(accepted(machine, "aaabbb")).toBe(true);
     expect(accepted(machine, "")).toBe(true);

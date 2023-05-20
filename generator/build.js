@@ -59,7 +59,7 @@ function build(src, { emitFile, target, name } = {}) {
         transitions,
         acceptStates,
 
-        consume: function (input, { reset } = { reset: false }) {
+        consume: function (input, { reset } = { reset: true }) {
             /**
              * Iterate through every possible path in the machine until either an accepted state is found with an empty input,
              * or all possible paths are exhausted.
@@ -119,7 +119,7 @@ function build(src, { emitFile, target, name } = {}) {
         },
 
         reset: function () {
-            this.stacks = [];
+            this.stacks = [[], []];
             this.state = initial;
             return this;
         },
@@ -235,7 +235,7 @@ function build(src, { emitFile, target, name } = {}) {
         _clone: function () {
             return {
                 ...this,
-                stacks: [...this.stacks],
+                stacks: [...this.stacks.map((s) => [...s])],
                 input: [...this.input],
                 state: this.state,
             };

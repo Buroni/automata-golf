@@ -21,7 +21,6 @@ function makeTransitionSrc(transition, nextState) {
             fnStr += `this.stacks[${i}].push("${stackVal}");`;
         }
     }
-    fnStr += "console.log(this.input, this.stacks)";
     return fnStr;
 }
 
