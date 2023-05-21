@@ -89,8 +89,6 @@ and pushes `$` to the stack without consuming any input or popping the stack.
 
 The following program accepts all binary numbers ending in `1`
 
-<img width="542" alt="Screenshot 2022-10-05 at 13 25 48" src="https://user-images.githubusercontent.com/3934417/194059891-9494d69e-fdcc-4f84-9d19-05c327609e94.png">
-
 ```js
 const { build } = require("./automata-golf/index.js");
 
@@ -101,6 +99,8 @@ const { machine } = build(`
 machine.consume("10110").inAcceptState(); // false
 machine.consume("1011").inAcceptState(); // true
 ```
+
+<img width="542" alt="Screenshot 2022-10-05 at 13 25 48" src="https://user-images.githubusercontent.com/3934417/194059891-9494d69e-fdcc-4f84-9d19-05c327609e94.png">
 
 ### Self-driving robot
 
@@ -123,8 +123,6 @@ machine.consume(["push", "collide"]).state; // backward
 
 The following accepts all odd-length palindromes in the language `{a, b}`
 
-<img width="962" alt="Screenshot 2022-10-05 at 13 27 33" src="https://user-images.githubusercontent.com/3934417/194060144-a14c4114-08a5-4b30-8a07-a273357aa8ae.png">
-
 ```js
 const { build } = require("automata-golf/index.js");
 
@@ -136,8 +134,8 @@ s2 -a[a]> -b[b]> s2;
 s2 -[$]> (s3); 
 `);
 
-console.log(machine.consume("abbba").inAcceptState()); // true
-console.log(machine.consume("abb").inAcceptState()); // false
+machine.consume("abbba").inAcceptState(); // true
+machine.consume("abb").inAcceptState(); // false
 ```
 
 Note the program can be condensed to
@@ -145,6 +143,9 @@ Note the program can be condensed to
 ```
 .s0 -[_:$]> s1 -a[_:a]> -b[_:b]> s1 -a> -b> s2 -a[a]> -b[b]> s2 -[$]> (s3);
 ```
+
+
+<img width="962" alt="Screenshot 2022-10-05 at 13 27 33" src="https://user-images.githubusercontent.com/3934417/194060144-a14c4114-08a5-4b30-8a07-a273357aa8ae.png">
 
 ## Recursively enumerable languages
 
