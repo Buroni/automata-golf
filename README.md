@@ -84,6 +84,8 @@ and pushes `$` to the second stack without consuming any input or popping either
 
 ## Regular languages
 
+Regular languages can be captured using finite-state machines.
+
 ### Odd binary numbers
 
 The following program accepts all binary numbers ending in `1`
@@ -118,6 +120,8 @@ machine.consume(["push", "collide"]).state; // backward
 
 ## Context-free languages
 
+Pushdown automota are required to parse context-free languages.
+
 ### Odd-length palindromes
 
 The following accepts all odd-length palindromes in the language `{a, b}`
@@ -147,6 +151,8 @@ Note the program can be condensed to
 <img width="962" alt="Screenshot 2022-10-05 at 13 27 33" src="https://user-images.githubusercontent.com/3934417/194060144-a14c4114-08a5-4b30-8a07-a273357aa8ae.png">
 
 ## Recursively enumerable languages
+
+Recursively enumerable languages can be parsed by using a pushdown automata with 2 stacks, equivalent to a Turing machine.
 
 ### a<sup>n</sup>b<sup>n</sup>c<sup>n</sup>
 
