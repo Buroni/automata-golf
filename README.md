@@ -1,6 +1,6 @@
 # automata-golf
 
-A domain-specific language (DSL) for parsing regular, context-free and recursively enumerable languages. The machines used to parse these languages respectively are [finite-state machines](https://en.wikipedia.org/wiki/Finite-state_machine), [pushdown automata](https://en.wikipedia.org/wiki/Pushdown_automaton) and [2-stack pushdown automota](https://en.wikipedia.org/wiki/Pushdown_automaton#:~:text=%5Bnote%202%5D-,PDA%20and%20Turing%20machines,-%5Bedit%5D) (equivalent to Turing machines).
+A domain-specific language (DSL) for parsing regular, context-free and recursively enumerable languages. 
 
 In `automata-golf`, a machine is defined by a series of path statements.
 There's no need to explicitly define states or transitions.
