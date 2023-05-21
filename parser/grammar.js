@@ -293,7 +293,7 @@ var grammar = (function () {
                     this.$ = [$$[$0]];
                     break;
                 case 27:
-                    this.$ = { read: $$[$0] };
+                    this.$ = { read: $$[$0], write: null };
                     break;
                 case 28:
                     this.$ = { read: $$[$0 - 2], write: $$[$0] };

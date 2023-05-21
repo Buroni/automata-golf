@@ -26,7 +26,7 @@ function makeTransitionSrc(transition, nextState) {
 
 function makeTransitionFunction(transitionName, nextState, stackVal) {
     const fnStr = makeTransitionSrc(transitionName, nextState, stackVal);
-    return new Function(fnStr);
+    return { callable: new Function(fnStr), src: fnStr };
 }
 
 function serialize(
@@ -44,7 +44,7 @@ function serialize(
     let serialized = `
 const initial = "${initial}";
 const fsm = {
-    stack: [], 
+    stacks: [[], []], 
     input: [],
     acceptStates: ${JSON.stringify(acceptStates)},
     state: "${initial}",
@@ -57,30 +57,26 @@ const fsm = {
     _stackMatch: ${this._stackMatch.toString()},
     _findCompositeKey: ${this._findCompositeKey.toString()},
     _clone: ${this._clone.toString()},
+    _totalStacksLength: ${this._totalStacksLength.toString()},
     transitions: {
 `;
-    for (const [name, ruleTransitions] of Object.entries(transitions)) {
-        serialized += `     "${name}": {\n`;
-        for (const transitionName in ruleTransitions) {
-            const transitionSrc = [];
-            for (const transition of ruleTransitions[transitionName]) {
-                const nextState = transition[`@@nextState_${transitionName}`];
-                const stackVal = transition[`@@stackVal_${transitionName}`];
-                transitionSrc.push(
-                    `{ fn: function() {\n${makeTransitionSrc(
-                        transitionName,
-                        nextState,
-                        stackVal
-                    )} } }`.replace(/\n/g, `\n                  `)
-                );
-            }
-            serialized += `         "${transitionName}": [
-            ${transitionSrc.join(", ")}],\n`;
-        }
-        serialized += "     },\n";
-    }
 
-    serialized += "}};";
+    for (const [name, stateTransitions] of Object.entries(transitions)) {
+        serialized += `     "${name}": [\n`;
+        const transitionSrc = [];
+        for (const stateTransition of stateTransitions) {
+            transitionSrc.push(
+                `{ filter: ${JSON.stringify(
+                    stateTransition.filter
+                )}, fn: { callable: function() {\n${
+                    stateTransition.fn.src
+                } } } }`.replace(/\n/g, `\n                  `)
+            );
+        }
+        serialized += `${transitionSrc.join(", ")}],\n`;
+    }
+    serialized += "     },\n};\n";
+
     serialized +=
         target === "node"
             ? "\nmodule.exports = fsm;\n"

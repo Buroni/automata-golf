@@ -125,10 +125,8 @@ function build(src, { emitFile, target, name } = {}) {
         },
 
         _mostExhausted: function (s1, s2) {
-            return s1.stacks.reduce((acc, el) => acc + el.length, 0) +
-                s1.input.length <=
-                s2.stacks.reduce((acc, el) => acc + el.length, 0) +
-                    s2.input.length
+            return s1._totalStacksLength() + s1.input.length <=
+                s2._totalStacksLength() + s2.input.length
                 ? s1
                 : s2;
         },
@@ -138,7 +136,7 @@ function build(src, { emitFile, target, name } = {}) {
              * Perform the transition on given snapshot and merge
              * into the current object if it's in an accept state
              */
-            transition.fn.call(snapshot);
+            transition.fn.callable.call(snapshot);
 
             if (snapshot.inAcceptState()) {
                 Object.assign(this, snapshot);
@@ -229,7 +227,15 @@ function build(src, { emitFile, target, name } = {}) {
 
         inAcceptState: function () {
             const { input, state } = this;
-            return !input.length && this.acceptStates.includes(state);
+            return (
+                !input.length &&
+                !this._totalStacksLength() &&
+                this.acceptStates.includes(state)
+            );
+        },
+
+        _totalStacksLength: function () {
+            return this.stacks.reduce((acc, el) => acc + el.length, 0);
         },
 
         _clone: function () {

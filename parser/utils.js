@@ -90,29 +90,17 @@ function TransitionBuilder() {
     this.addTransition = function (state, transition, nextState) {
         const fn = makeTransitionFunction(transition, nextState.name);
 
-        const transitionObj = {
-            fn,
-            // @@ values are used for generating source code, as the needed
-            // value is hidden inside the function closure during code generation.
-            [`@@nextState_${transition.input}`]: nextState.name,
-        };
-
-        if (transition.stacks?.length) {
-            transitionObj[`@@stackVal_${transition.input}`] =
-                transition.stacks[0].write;
-        }
-
         if (!this.transitions[state.name]) {
             this.transitions[state.name] = [];
         }
 
         this.transitions[state.name].push({
+            fn,
             filter: {
                 state: state.name,
                 input: transition.input,
                 stackValues: transition.stacks?.map((s) => s.read) || [],
             },
-            ...transitionObj,
         });
     };
 }
