@@ -152,7 +152,7 @@ Note the program can be condensed to
 
 ## Recursively enumerable languages
 
-Recursively enumerable languages can be parsed by using a pushdown automata with 2 stacks, equivalent to a Turing machine.
+Recursively enumerable languages can be parsed by using a pushdown automaton with 2 stacks, equivalent to a Turing machine.
 
 ### a<sup>n</sup>b<sup>n</sup>c<sup>n</sup>
 
