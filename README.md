@@ -127,8 +127,8 @@ The following accepts all odd-length palindromes in the language `{a, b}`
 const { build } = require("automata-golf/index.js");
 
 const { machine } = build(`
-.s0 -[_:$]> s1;
-s1 -a[_:a]> -b[_:b]> s1;
+.s0 -[:$]> s1;
+s1 -a[:a]> -b[:b]> s1;
 s1 -a> -b> s2;
 s2 -a[a]> -b[b]> s2;
 s2 -[$]> (s3); 
@@ -141,7 +141,7 @@ machine.consume("abb").inAcceptState(); // false
 Note the program can be condensed to
 
 ```
-.s0 -[_:$]> s1 -a[_:a]> -b[_:b]> s1 -a> -b> s2 -a[a]> -b[b]> s2 -[$]> (s3);
+.s0 -[:$]> s1 -a[_:a]> -b[:b]> s1 -a> -b> s2 -a[a]> -b[b]> s2 -[$]> (s3);
 ```
 
 
