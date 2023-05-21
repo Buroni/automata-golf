@@ -8,8 +8,6 @@ function filterMetaProperties(machine) {
     /**
      * Remove object properties related to source code generation, that are only used
      * during build and shouldn't be on the public machine object.
-     *
-     * These are properties prefixed with '@@' or '_'
      */
     delete machine._serialize;
     for (const state in machine.transitions) {
