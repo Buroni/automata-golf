@@ -1,7 +1,6 @@
 # automata-golf
 
-A domain-specific language (DSL) for creating non-deterministic [finite-state machines](https://en.wikipedia.org/wiki/Finite-state_machine), [pushdown automota](https://en.wikipedia.org/wiki/Pushdown_automaton) and [Turing machines](https://en.wikipedia.org/wiki/Turing_machine).
-Mostly for fun.
+A domain-specific language (DSL) for parsing regular, context-free and recursively enumerable languages. The machines used to parse these languages respectively are [finite-state machines](https://en.wikipedia.org/wiki/Finite-state_machine), [pushdown automata](https://en.wikipedia.org/wiki/Pushdown_automaton) and [2-stack pushdown automota](https://en.wikipedia.org/wiki/Pushdown_automaton#:~:text=%5Bnote%202%5D-,PDA%20and%20Turing%20machines,-%5Bedit%5D) (equivalent to Turing machines).
 
 In `automata-golf`, a machine is defined by a series of path statements.
 There's no need to explicitly define states or transitions.
@@ -71,14 +70,14 @@ example and corresponding automaton diagram below.
 ### Epsilon transitions
 
 Epsilon is represented by `_`. For example the following transitions to `s1`
-and pushes `$` to the stack without consuming any input or popping the stack.
+and pushes `$` to the second stack without consuming any input or popping either stack.
 
 ```
-.s0 -_[_:$]> (s1);
+.s0 -_[_:_, _:$]> (s1);
 
 # or equivalently:
 
-.s0 -[:$]> (s1);
+.s0 -[_, :$]> (s1);
 ```
 
 # Examples
