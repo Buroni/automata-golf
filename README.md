@@ -1,6 +1,6 @@
 # automata-golf
 
-A domain-specific language (DSL) for creating non-deterministic [finite-state machines](https://en.wikipedia.org/wiki/Finite-state_machine) and [pushdown automota](https://en.wikipedia.org/wiki/Pushdown_automaton).
+A domain-specific language (DSL) for creating non-deterministic [finite-state machines](https://en.wikipedia.org/wiki/Finite-state_machine), [pushdown automota](https://en.wikipedia.org/wiki/Pushdown_automaton) and [Turing machines](https://en.wikipedia.org/wiki/Turing_machine).
 Mostly for fun.
 
 In `automata-golf`, a machine is defined by a series of path statements.
@@ -52,10 +52,21 @@ The following transitions to `s1` on input `f` when `a` is top of the stack.
 Upon the transition, it pushes `b` to the stack.
 
 ```
-.s0 -[f,a]b> s1;
+.s0 -f[a:b]> s1;
 ```
 
 <img width="507" alt="Screenshot 2022-10-05 at 13 35 39" src="https://user-images.githubusercontent.com/3934417/194061616-49be2ba3-ca5b-48a7-9eb5-5c520bb6c1e1.png">
+
+### Multiple stacks
+
+2-stack PDAs are supported, making them equivalent to Turing machines. See the
+example and corresponding automaton diagram below.
+
+```
+.s0 -f[a:b, _:c]> s1;
+```
+
+<img width="506" src="https://i.imgur.com/Lct66bk.png"/>
 
 ### Epsilon transitions
 
@@ -63,16 +74,16 @@ Epsilon is represented by `_`. For example the following transitions to `s1`
 and pushes `$` to the stack without consuming any input or popping the stack.
 
 ```
-.s0 -[_,_]$> (s1);
+.s0 -_[_:$]> (s1);
 
 # or equivalently:
 
-.s0 -[_]$> (s1);
+.s0 -[:$]> (s1);
 ```
 
-> Epsilons can usually be omitted, for example `-f>` is short for `-[f,_]_>`.
+# Examples
 
-## Examples
+## Regular languages
 
 ### Odd binary numbers
 
@@ -83,7 +94,7 @@ The following program accepts all binary numbers ending in `1`
 ```js
 const { build } = require("./automata-golf/index.js");
 
-const machine = build(`
+const { machine } = build(`
 .s0 -0> -1> s0 -1> (s1);
 `);
 
@@ -106,24 +117,7 @@ const { machine } = build(`
 machine.consume(["push", "collide"]).state; // backward
 ```
 
-### a<sup>n</sup>b<sup>n</sup>
-
-The following accepts the format a<sup>n</sup>b<sup>n</sup>
-
-<img width="799" alt="Screenshot 2022-10-05 at 13 27 10" src="https://user-images.githubusercontent.com/3934417/194060081-cf676e9d-6f5c-430a-985a-08e5ae9a8e84.png">
-
-```js
-const { build } = require("./automata-golf/index.js");
-
-const machine = build(`
-.s0 -[a,_]a> s0;
-s0 -_> (s1);
-s1 -[b,a]> s1;
-`);
-
-machine.consume("aaabbb").inAcceptState(); // true
-machine.consume("abb").inAcceptState(); // false
-```
+## Context-free languages
 
 ### Odd-length palindromes
 
@@ -132,29 +126,44 @@ The following accepts all odd-length palindromes in the language `{a, b}`
 <img width="962" alt="Screenshot 2022-10-05 at 13 27 33" src="https://user-images.githubusercontent.com/3934417/194060144-a14c4114-08a5-4b30-8a07-a273357aa8ae.png">
 
 ```js
-const { build } = require("../index.js");
+const { build } = require("automata-golf/index.js");
 
-const machine = build(`
-.s0 -[_]$> s1;
-
-s1 -[a]a> -[b]b> s1;
-
+const { machine } = build(`
+.s0 -[_:$]> s1;
+s1 -a[_:a]> -b[_:b]> s1;
 s1 -a> -b> s2;
-
-s2 -[a,a]> -[b,b]> s2;
-
-s2 -[_,$]> (s3);
+s2 -a[a]> -b[b]> s2;
+s2 -[$]> (s3); 
 `);
 
 console.log(machine.consume("abbba").inAcceptState()); // true
 console.log(machine.consume("abb").inAcceptState()); // false
 ```
 
-Note the program can be golfed to
+Note the program can be condensed to
 
 ```
-.s0 -[_]Z> s1 -[a]a> -[b]b> s1 -a> -b> s2 -[a,a]> -[b,b]> s2 -[_,Z]> (s3);
+.s0 -[_:$]> s1 -a[_:a]> -b[_:b]> s1 -a> -b> s2 -a[a]> -b[b]> s2 -[$]> (s3);
 ```
+
+## Recursively enumerable languages
+
+### a<sup>n</sup>b<sup>n</sup>c<sup>n</sup>
+
+The following accepts input of the format a<sup>n</sup>b<sup>n</sup>c<sup>n</sup>:
+
+```js
+const { build } = require("automata-golf/index.js");
+
+const machine = build(`
+.s0 -a[:a]> s0 -_> s1 -b[a, :b]> s1 -_> s2 -c[_, b]> (s2);
+`);
+
+machine.consume("aabbcc").inAcceptState(); // true
+machine.consume("abbc").inAcceptState(); // false
+```
+
+<img width="962" src="https://i.imgur.com/cdBeBF4.png"/>
 
 ## Build to JS
 

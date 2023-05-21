@@ -19,15 +19,17 @@ test("Double transition", () => {
 });
 
 test("Transitions to the success stata via epsilons", () => {
-    const { machine } = build(`.s0 -_> s1 -[_,_]> s2 -[_]> s3 -[_,_]_> (s4);`);
-    expect(machine.consume("").state).toBe("s4");
+    const { machine } = build(
+        `.s0 -_> s1 -_[_]> s2 -[_:_]> s3 -_[_, _]> s4 -_[_:_, _:_]> (s5);`
+    );
+    expect(machine.consume("").state).toBe("s5");
 });
 
 test("Adds $ to stack given input a", () => {
-    const { machine } = build(`.s0 -[_]$> s1 -[a,$]b> (s2);`);
+    const { machine } = build(`.s0 -[:$]> s1 -a[$:b]> (s2);`);
     machine.consume("a");
     expect(machine.state).toBe("s2");
-    expect(machine.stack[0]).toBe("b");
+    expect(machine.stacks[0][0]).toBe("b");
     expect(machine.input.length).toBe(0);
 });
 
@@ -42,8 +44,8 @@ test("No starting state", () => {
 
 test("Halts after exhausting possible paths", () => {
     const { machine } = build(`
-        .q0 -[_]Z> q1 -[a]a> q1 -[b]b> q1 -a> q2;
-        q1 -b> q2 -[a,a]> q2 -[b,b]> q2 -[_,Z]> (q3);  
+        .q0 -[:Z]> q1 -a[:a]> q1 -b[:b]> q1 -a> q2;
+        q1 -b> q2 -a[a]> q2 -b[b]> q2 -[Z]> (q3);  
     `);
     machine.consume("ab");
     expect(machine.state).toBe("q3");

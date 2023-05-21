@@ -296,7 +296,10 @@ var grammar = (function () {
                     this.$ = { read: $$[$0], write: null };
                     break;
                 case 28:
-                    this.$ = { read: $$[$0 - 2], write: $$[$0] };
+                    this.$ = {
+                        read: $$[$0 - 2],
+                        write: $$[$0] === "_" ? null : $$[$0],
+                    };
                     break;
                 case 29:
                     this.$ = { read: "_", write: $$[$0] };
