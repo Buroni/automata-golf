@@ -1,6 +1,6 @@
 # automata-golf
 
-A domain-specific language (DSL) for parsing regular, context-free and recursively enumerable languages. 
+A domain-specific language (DSL) for parsing regular, context-free and recursively enumerable languages.
 
 In `automata-golf`, a machine is defined by a series of path statements.
 There's no need to explicitly define states or transitions.
@@ -146,7 +146,6 @@ Note the program can be condensed to
 ```
 .s0 -[:$]> s1 -a[_:a]> -b[:b]> s1 -a> -b> s2 -a[a]> -b[b]> s2 -[$]> (s3);
 ```
-
 
 <img width="962" alt="Screenshot 2022-10-05 at 13 27 33" src="https://user-images.githubusercontent.com/3934417/194060144-a14c4114-08a5-4b30-8a07-a273357aa8ae.png">
 

@@ -40,3 +40,13 @@ test("Builds a self-driving robot", () => {
     `);
     expect(machine.consume(["push", "collide"]).state).toBe("backward");
 });
+
+test("Builds a NPDA that accepts a^(n)b^(n)c^(n)", () => {
+    const { machine } = build(`
+        .s0 -a[:a]> s0 -_> s1 -b[a, :b]> s1 -_> s2 -c[_, b]> (s2);
+    `);
+    expect(accepted(machine, "aaabbbccc")).toBe(true);
+    expect(accepted(machine, "abc")).toBe(true);
+    expect(accepted(machine, "aabbccc")).toBe(false);
+    expect(accepted(machine, "aabcc")).toBe(false);
+});
