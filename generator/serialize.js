@@ -55,7 +55,6 @@ const fsm = {
     _evaluateSnapshot: ${this._evaluateSnapshot.toString()},
     _getPossibleTransitions: ${this._getPossibleTransitions.toString()},
     _stackMatch: ${this._stackMatch.toString()},
-    _findCompositeKey: ${this._findCompositeKey.toString()},
     _clone: ${this._clone.toString()},
     _totalStacksLength: ${this._totalStacksLength.toString()},
     transitions: {

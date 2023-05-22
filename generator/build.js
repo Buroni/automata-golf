@@ -163,7 +163,7 @@ function build(src, { emitFile, target, name } = {}) {
                     (filter.input === inputValue || filter.input === "_") &&
                     filter.stackValues.every(
                         (sv, idx) => sv === stackValues[idx] || sv === "_"
-                    ) // TODO - check `sv` epsilon?
+                    )
                 ) {
                     possibleTransitions.push(t);
                 }
@@ -200,27 +200,6 @@ function build(src, { emitFile, target, name } = {}) {
              * otherwise perform equality check.
              */
             return t === "_" || t === stackValue;
-        },
-
-        _findCompositeKey: function (transitionName, stackValues) {
-            /**
-             * Given a transition name e.g. `f`, finds the composite {transition},{state} transition
-             * for the current stack value if it exists.
-             *
-             * For example if the requested transition is `f` and the current value atop the stack is `a`,
-             * then the method matches and returns transition `f,a`.
-             */
-            for (const key in this.transitions[this.state]) {
-                if (key.startsWith(`${transitionName}:`)) {
-                    const [, stackTransition] = key.split(":");
-                    if (
-                        !stackTransition ||
-                        this._stackMatch(stackTransition, stackValues)
-                    ) {
-                        return key;
-                    }
-                }
-            }
         },
 
         inAcceptState: function () {
