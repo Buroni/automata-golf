@@ -42,7 +42,7 @@ Multiple transitions from the same state can be stacked up:
 .s0 -f> -g> -h> s1;
 ```
 
-## Pushdown automota
+## Pushdown automata
 
 `automata-golf` supports pushdown automota, i.e. a finite-state machine with
 a stack and transitions that push/pop the stack.
